@@ -12,20 +12,20 @@
 
 using namespace std;
 
-static void RenderSceneCB()
+void display()
 {
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT); //清除颜色缓存并重设为当前的清除值
 
-	glutSwapBuffers();
+	glFlush();//强制之前的OpenGL命令立即执行
 }
 
 int main(int argc, char** argv)
 {
 	glutInit(&argc, argv);//初始化GLUT库
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);//设置程序所使用的窗口类型
+	glutInitDisplayMode(GLUT_RGBA);//设置程序所使用的窗口类型
 	glutInitWindowSize(800, 600);
 	glutInitWindowPosition(100, 100);
-	glutCreateWindow("OpenGL客户端");
+	glutCreateWindow("HelloTriangle");
 
 	GLenum res = glewInit();
 	if (res != GLEW_OK)
@@ -34,11 +34,11 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	glutDisplayFunc(RenderSceneCB);//显示回调（display callback），即GLUT在每次更新窗口内容会自动调用此函数
-	glutIdleFunc(RenderSceneCB);//空闲时每帧调用
+	glutDisplayFunc(display);//显示回调，即GLUT在每次更新窗口内容会自动调用此函数
 
-	glClearColor(0.0f, 1.0f, 0.0f, 0.0f);
+	glClearColor(0.0f, 1.0f, 0.0f, 0.0f);//设置当前使用的清除颜色，若不设置OpenGL默认为黑色
 
 	glutMainLoop();
+
 	return 1;
 }

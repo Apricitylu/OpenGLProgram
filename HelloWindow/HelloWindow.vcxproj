@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{E410209B-21C2-40CA-9AC1-B503BFB3A4CB}</ProjectGuid>
+    <ProjectGuid>{68AAE9F6-1D4B-4236-B8F8-8B9BFFFE359B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>MainClient</RootNamespace>
+    <RootNamespace>HelloWindow</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -80,7 +80,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="HelloWindow.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
