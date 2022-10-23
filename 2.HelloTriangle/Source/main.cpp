@@ -25,7 +25,7 @@ int main(int argc, char** argv)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
-	GLFWwindow* window = glfwCreateWindow(600, 600, "HelloWorld", NULL, NULL);//实例化GLFWwindow
+	GLFWwindow* window = glfwCreateWindow(600, 600, "HelloTriangle", NULL, NULL);//实例化GLFWwindow
 	glfwMakeContextCurrent(window);//将window与当前OpenGL上下文关联起来
 
 	//初始化GLEW库
