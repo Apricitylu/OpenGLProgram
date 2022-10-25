@@ -2,6 +2,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <fstream>
+#include <string>
 
 using namespace std;
 
@@ -53,6 +55,21 @@ bool checkOpenGLError()
 	return foundError;
 }
 
+string readShaderSource(const char* filePath)
+{
+	string content;
+	ifstream fileStream(filePath, ios::in);
+	string line = "";
+	while (!fileStream.eof())
+	{
+		getline(fileStream, line);
+		content.append(line + "\n");
+	}
+	fileStream.close();
+
+	return content;
+}
+
 GLuint createShaderProgram()
 {
 	GLint vertCompiled;
@@ -60,21 +77,11 @@ GLuint createShaderProgram()
 	GLint linked;
 
 	//所有顶点着色器的主要目标都是将顶点发送给管线
-	const char* vshaderSource =
-		"#version 430 \n"
-		"void main(void) \n"
-		"{ gl_Position = vec4(0.0, 0.0, 0.0, 1.0); }";
+	string vertShaderStr = readShaderSource("Source/vertShader.glsl");
+	string fragShaderStr = readShaderSource("Source/fragShader.glsl");
 
-	const char* fshaderSource =
-		"#version 430 \n"
-		"out vec4 color; \n"
-		"void main(void) \n"
-		"{ \n"
-		"	if(gl_FragCoord.x < 300)  \n"
-		"		color = vec4(0.0, 0.0, 1.0, 1.0); \n"
-		"	else \n"
-		"		color = vec4(1.0, 0.0, 0.0, 1.0); \n"
-		"}";
+	const char* vshaderSource = vertShaderStr.c_str();
+	const char* fshaderSource = fragShaderStr.c_str();
 
 	GLuint vShader = glCreateShader(GL_VERTEX_SHADER);
 	GLuint fShader = glCreateShader(GL_FRAGMENT_SHADER);
