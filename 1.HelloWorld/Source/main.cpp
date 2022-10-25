@@ -10,8 +10,55 @@ using namespace std;
 GLuint renderingProgram;
 GLuint vao[numVAOs];
 
+//当GLSL编译失败时，显示OpenGL日志内容
+void printShaderLog(GLuint shader) 
+{
+	int len = 0;
+	int chWrittn = 0;
+	char* log;
+	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
+	if (len > 0) {
+		log = (char*)malloc(len);
+		glGetShaderInfoLog(shader, len, &chWrittn, log);
+		cout << "Shader Info Log: " << log << endl;
+		free(log);
+	}
+}
+
+//当GLSL链接失败时，显示OpenGL日志内容
+void printProgramLog(int prog) 
+{
+	int len = 0;
+	int chWrittn = 0;
+	char* log;
+	glGetProgramiv(prog, GL_INFO_LOG_LENGTH, &len);
+	if (len > 0) {
+		log = (char*)malloc(len);
+		glGetProgramInfoLog(prog, len, &chWrittn, log);
+		cout << "Program Info Log: " << log << endl;
+		free(log);
+	}
+}
+
+//检查OpenGL错误标志，即是否发生OpenGL错误
+bool checkOpenGLError() 
+{
+	bool foundError = false;
+	int glErr = glGetError();
+	while (glErr != GL_NO_ERROR) {
+		cout << "glError: " << glErr << endl;
+		foundError = true;
+		glErr = glGetError();
+	}
+	return foundError;
+}
+
 GLuint createShaderProgram()
 {
+	GLint vertCompiled;
+	GLint fragCompiled;
+	GLint linked;
+
 	//所有顶点着色器的主要目标都是将顶点发送给管线
 	const char* vshaderSource =
 		"#version 430 \n"
@@ -36,7 +83,22 @@ GLuint createShaderProgram()
 	glShaderSource(fShader, 1, &fshaderSource, NULL);
 
 	glCompileShader(vShader);
+	checkOpenGLError();
+	glGetShaderiv(vShader, GL_COMPILE_STATUS, &vertCompiled);
+	if (vertCompiled != 1)
+	{
+		cout << "vextex complication failed" << endl;
+		printShaderLog(vShader);
+	}
+
 	glCompileShader(fShader);
+	checkOpenGLError();
+	glGetShaderiv(fShader, GL_COMPILE_STATUS, &vertCompiled);
+	if (vertCompiled != 1)
+	{
+		cout << "fragment complication failed" << endl;
+		printShaderLog(fShader);
+	}
 
 	GLuint vfProgram = glCreateProgram();
 
@@ -44,6 +106,13 @@ GLuint createShaderProgram()
 	glAttachShader(vfProgram, fShader);
 
 	glLinkProgram(vfProgram);
+	checkOpenGLError();
+	glGetProgramiv(vfProgram, GL_LINK_STATUS, &linked);
+	if (linked != 1)
+	{
+		cout << "linking failed" << endl;
+		printProgramLog(vfProgram);
+	}
 
 	return vfProgram;
 }
