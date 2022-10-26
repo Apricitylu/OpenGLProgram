@@ -141,9 +141,9 @@ void display(GLFWwindow* window, double currentTime)
 	//glClear(GL_COLOR_BUFFER_BIT);	//实际使用红色对颜色缓冲区进行填充
 
 	glUseProgram(renderingProgram);	//将含有两个已编译着色器的程序载入OpenGL管线阶段
-	glPointSize(30.0f);//设置大小为30像素的点
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);//呈现线框模型
-	glDrawArrays(GL_POINTS, 0, 1);//启动管线处理过程
+	//glPointSize(30.0f);//设置大小为30像素的点
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);//呈现线框模型
+	glDrawArrays(GL_TRIANGLES, 0, 3);//启动管线处理过程
 }
 
 int main(int argc, char** argv)
