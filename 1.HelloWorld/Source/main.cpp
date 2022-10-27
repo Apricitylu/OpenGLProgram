@@ -12,6 +12,9 @@ using namespace std;
 GLuint renderingProgram;
 GLuint vao[numVAOs];
 
+float x = 0.0f;	//三角形在x轴的位置
+float inc = 0.01f;	//移动三角形的偏移量
+
 //当GLSL编译失败时，显示OpenGL日志内容
 void printShaderLog(GLuint shader) 
 {
@@ -100,8 +103,8 @@ GLuint createShaderProgram()
 
 	glCompileShader(fShader);
 	checkOpenGLError();
-	glGetShaderiv(fShader, GL_COMPILE_STATUS, &vertCompiled);
-	if (vertCompiled != 1)
+	glGetShaderiv(fShader, GL_COMPILE_STATUS, &fragCompiled);
+	if (fragCompiled != 1)
 	{
 		cout << "fragment complication failed" << endl;
 		printShaderLog(fShader);
@@ -137,12 +140,21 @@ void init(GLFWwindow* window)
 
 void display(GLFWwindow* window, double currentTime)
 {
-	//glClearColor(1.0, 0.0, 0.0, 1.0);	//指定了清除背景时用的颜色值
-	//glClear(GL_COLOR_BUFFER_BIT);	//实际使用红色对颜色缓冲区进行填充
+	glClear(GL_DEPTH_BUFFER_BIT);	//清除深度缓冲区
+	glClearColor(0.0, 0.0, 0.0, 1.0);	//指定了清除背景时用的颜色值
+	glClear(GL_COLOR_BUFFER_BIT);	//实际使用红色对颜色缓冲区进行填充
 
 	glUseProgram(renderingProgram);	//将含有两个已编译着色器的程序载入OpenGL管线阶段
 	//glPointSize(30.0f);//设置大小为30像素的点
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);//呈现线框模型
+
+	x += inc;	// 切换让三角形左右移动
+	if (x > 1.0f) inc = -0.01f;		// 沿x轴移动三角形
+	if (x < -1.0f) inc = 0.01f;		// 切换至让三角形向左移动
+
+	GLuint offsetLoc = glGetUniformLocation(renderingProgram, "offset");	// 获取"offset"指针
+	glProgramUniform1f(renderingProgram, offsetLoc, x);	// 将"x"中的值传给"offset"
+
 	glDrawArrays(GL_TRIANGLES, 0, 3);//启动管线处理过程
 }
 
@@ -181,7 +193,7 @@ int main(int argc, char** argv)
 		glfwSwapBuffers(window);//绘制屏幕
 		glfwPollEvents();//处理窗口相关事件（如按键事件）
 	}
-
+	
 	//通知GLFW销毁窗口以及终止运行
 	glfwDestroyWindow(window);
 	glfwTerminate();
