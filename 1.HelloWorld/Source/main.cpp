@@ -1,9 +1,15 @@
+#pragma once
+
+#pragma comment(lib,"../../Debug/Common.lib")
+#pragma comment(lib,"../../Release/Common.lib")
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <fstream>
 #include <string>
+
+#include "../../Common/utils.h"
 
 using namespace std;
 
@@ -15,121 +21,12 @@ GLuint vao[numVAOs];
 float x = 0.0f;	//三角形在x轴的位置
 float inc = 0.01f;	//移动三角形的偏移量
 
-//当GLSL编译失败时，显示OpenGL日志内容
-void printShaderLog(GLuint shader) 
-{
-	int len = 0;
-	int chWrittn = 0;
-	char* log;
-	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
-	if (len > 0) {
-		log = (char*)malloc(len);
-		glGetShaderInfoLog(shader, len, &chWrittn, log);
-		cout << "Shader Info Log: " << log << endl;
-		free(log);
-	}
-}
-
-//当GLSL链接失败时，显示OpenGL日志内容
-void printProgramLog(int prog) 
-{
-	int len = 0;
-	int chWrittn = 0;
-	char* log;
-	glGetProgramiv(prog, GL_INFO_LOG_LENGTH, &len);
-	if (len > 0) {
-		log = (char*)malloc(len);
-		glGetProgramInfoLog(prog, len, &chWrittn, log);
-		cout << "Program Info Log: " << log << endl;
-		free(log);
-	}
-}
-
-//检查OpenGL错误标志，即是否发生OpenGL错误
-bool checkOpenGLError() 
-{
-	bool foundError = false;
-	int glErr = glGetError();
-	while (glErr != GL_NO_ERROR) {
-		cout << "glError: " << glErr << endl;
-		foundError = true;
-		glErr = glGetError();
-	}
-	return foundError;
-}
-
-string readShaderSource(const char* filePath)
-{
-	string content;
-	ifstream fileStream(filePath, ios::in);
-	string line = "";
-	while (!fileStream.eof())
-	{
-		getline(fileStream, line);
-		content.append(line + "\n");
-	}
-	fileStream.close();
-
-	return content;
-}
-
-GLuint createShaderProgram()
-{
-	GLint vertCompiled;
-	GLint fragCompiled;
-	GLint linked;
-
-	//所有顶点着色器的主要目标都是将顶点发送给管线
-	string vertShaderStr = readShaderSource("Source/vertShader.glsl");
-	string fragShaderStr = readShaderSource("Source/fragShader.glsl");
-
-	const char* vshaderSource = vertShaderStr.c_str();
-	const char* fshaderSource = fragShaderStr.c_str();
-
-	GLuint vShader = glCreateShader(GL_VERTEX_SHADER);
-	GLuint fShader = glCreateShader(GL_FRAGMENT_SHADER);
-
-	glShaderSource(vShader, 1, &vshaderSource, NULL);
-	glShaderSource(fShader, 1, &fshaderSource, NULL);
-
-	glCompileShader(vShader);
-	checkOpenGLError();
-	glGetShaderiv(vShader, GL_COMPILE_STATUS, &vertCompiled);
-	if (vertCompiled != 1)
-	{
-		cout << "vextex complication failed" << endl;
-		printShaderLog(vShader);
-	}
-
-	glCompileShader(fShader);
-	checkOpenGLError();
-	glGetShaderiv(fShader, GL_COMPILE_STATUS, &fragCompiled);
-	if (fragCompiled != 1)
-	{
-		cout << "fragment complication failed" << endl;
-		printShaderLog(fShader);
-	}
-
-	GLuint vfProgram = glCreateProgram();
-
-	glAttachShader(vfProgram, vShader);
-	glAttachShader(vfProgram, fShader);
-
-	glLinkProgram(vfProgram);
-	checkOpenGLError();
-	glGetProgramiv(vfProgram, GL_LINK_STATUS, &linked);
-	if (linked != 1)
-	{
-		cout << "linking failed" << endl;
-		printProgramLog(vfProgram);
-	}
-
-	return vfProgram;
-}
 
 void init(GLFWwindow* window) 
 {
-	renderingProgram = createShaderProgram();
+	const char* vp = "Source/vertShader.glsl";
+	const char* fp = "Source/fragShader.glsl";
+	renderingProgram = Utils::createShaderProgram(vp, fp);
 
 	//即使应用程序完全没有用到任何缓冲区，
 	//OpenGL仍然需要在使用着色器的时候至少有一个创建好的VAO，
