@@ -1,7 +1,11 @@
 #pragma once
 
+//区分Debug模式和Release模式
+#ifdef _DEBUG
 #pragma comment(lib,"../../Debug/Common.lib")
+#else
 #pragma comment(lib,"../../Release/Common.lib")
+#endif
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
