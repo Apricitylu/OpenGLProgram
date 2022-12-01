@@ -69,7 +69,8 @@ void init(GLFWwindow* window) {
 }
 
 void display(GLFWwindow* window, double currentTime) {
-    glClear(GL_DEPTH_BUFFER_BIT);//清除深度缓冲区
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(renderingProgram);
 
     // 获取MV矩阵和投影矩阵的统一变量
@@ -83,7 +84,13 @@ void display(GLFWwindow* window, double currentTime) {
 
     // 构建视图矩阵、模型矩阵和视图-模型矩阵
     vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
-    mMat = glm::translate(glm::mat4(1.0f), glm::vec3(cubeLocX, cubeLocY, cubeLocZ));
+    // 使用当前时间来计算x，y和z的不同变换
+    tMat = glm::translate(glm::mat4(1.0f), glm::vec3(sin(0.35f * currentTime) * 2.0f, cos(0.52f * currentTime) * 2.0f, sin(0.7f * currentTime) * 2.0f));
+    rMat = glm::rotate(glm::mat4(1.0f), 1.75f * (float)currentTime, glm::vec3(0.0f, 1.0f, 0.0f));
+    rMat = glm::rotate(rMat, 1.75f * (float)currentTime, glm::vec3(1.0f, 0.0f, 0.0f));
+    rMat = glm::rotate(rMat, 1.75f * (float)currentTime, glm::vec3(0.0f, 0.0f, 1.0f));
+    // 用1.75来调整旋转速度
+    mMat = tMat * rMat;
     mvMat = vMat * mMat;
 
     // 将透视矩阵和MV矩阵复制给相应的统一变量

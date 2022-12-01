@@ -63,32 +63,37 @@ void init(GLFWwindow* window) {
     const char* vp = "Source/vertShader.glsl";
     const char* fp = "Source/fragShader.glsl";
     renderingProgram = Utils::createShaderProgram(vp, fp);
-    cameraX = 0.0f; cameraY = 0.0f; cameraZ = 8.0f;
+    cameraX = 0.0f; cameraY = 0.0f; cameraZ = 420.0f;
     cubeLocX = 0.0f; cubeLocY = -2.0f; cubeLocZ = 0.0f; // 沿Y轴下移以展示透视
     setupVertices();
 }
 
 void display(GLFWwindow* window, double currentTime) {
-    glClear(GL_DEPTH_BUFFER_BIT);//清除深度缓冲区
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(renderingProgram);
 
     // 获取MV矩阵和投影矩阵的统一变量
-    mvLoc = glGetUniformLocation(renderingProgram, "mv_matrix");
+    mLoc = glGetUniformLocation(renderingProgram, "m_matrix");
+    vLoc = glGetUniformLocation(renderingProgram, "v_matrix");
     projLoc = glGetUniformLocation(renderingProgram, "proj_matrix");
+    tfLoc = glGetUniformLocation(renderingProgram, "tf");          // （着色器也需要它）
+
+    mMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
+    vMat = glm::translate(glm::mat4(1.0f), glm::vec3(cubeLocX, cubeLocY, cubeLocZ));
 
     // 构建透视矩阵
     glfwGetFramebufferSize(window, &width, &height);
     aspect = (float)width / (float)height;
     pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f); // 1.0472 radians = 60 degrees
 
-    // 构建视图矩阵、模型矩阵和视图-模型矩阵
-    vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
-    mMat = glm::translate(glm::mat4(1.0f), glm::vec3(cubeLocX, cubeLocY, cubeLocZ));
-    mvMat = vMat * mMat;
+    timeFactor = ((float)currentTime);                             // 为了获得时间因子信息
 
     // 将透视矩阵和MV矩阵复制给相应的统一变量
-    glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
+    glUniformMatrix4fv(mLoc, 1, GL_FALSE, glm::value_ptr(mMat));
+    glUniformMatrix4fv(vLoc, 1, GL_FALSE, glm::value_ptr(vMat));
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
+    glUniform1f(tfLoc, (float)timeFactor);
 
     // 将VBO关联给顶点着色器中相应的顶点属性
     glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
@@ -98,7 +103,7 @@ void display(GLFWwindow* window, double currentTime) {
     // 调整OpenGL设置，绘制模型
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 36, 1000000);
 }
 
 int main(void) {                            // main()和之前的没有变化
