@@ -26,6 +26,7 @@ using namespace std;
 
 float cameraX, cameraY, cameraZ;
 float cubeLocX, cubeLocY, cubeLocZ;
+float pyramidLocX, pyramidLocY, pyramidLocZ;
 GLuint renderingProgram;
 GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
@@ -37,7 +38,7 @@ float aspect, timeFactor;
 glm::mat4 pMat, vMat, mMat, mvMat, tMat, rMat;
 
 void setupVertices(void) {    // 36¸ö¶¥µã£¬12¸öÈý½ÇÐÎ£¬×é³ÉÁË·ÅÖÃÔÚÔ­µã´¦µÄ2¡Á2¡Á2Á¢·½Ìå
-    float vertexPositions[108] = {
+    float cubePositions[108] = {
        -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f,
        1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f,
        1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f,
@@ -51,12 +52,25 @@ void setupVertices(void) {    // 36¸ö¶¥µã£¬12¸öÈý½ÇÐÎ£¬×é³ÉÁË·ÅÖÃÔÚÔ­µã´¦µÄ2¡Á2¡
        -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f,
        1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f
     };
+
+    float pyramidPositions[54] = {
+      -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+      1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+      1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+      -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+      -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f,
+      1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f
+    };
+
     glGenVertexArrays(1, vao);
     glBindVertexArray(vao[0]);
     glGenBuffers(numVBOs, vbo);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions), vertexPositions, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cubePositions), cubePositions, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(pyramidPositions), pyramidPositions, GL_STATIC_DRAW);
 }
 
 void init(GLFWwindow* window) {
@@ -65,6 +79,7 @@ void init(GLFWwindow* window) {
     renderingProgram = Utils::createShaderProgram(vp, fp);
     cameraX = 0.0f; cameraY = 0.0f; cameraZ = 8.0f;
     cubeLocX = 0.0f; cubeLocY = -2.0f; cubeLocZ = 0.0f; // ÑØYÖáÏÂÒÆÒÔÕ¹Ê¾Í¸ÊÓ
+    pyramidLocX = 2.0f; pyramidLocY = 2.0f; pyramidLocZ = 0.0f; // ÑØYÖáÏÂÒÆÒÔÕ¹Ê¾Í¸ÊÓ
     setupVertices();
 }
 
@@ -83,6 +98,8 @@ void display(GLFWwindow* window, double currentTime) {
 
     // ¹¹½¨ÊÓÍ¼¾ØÕó¡¢Ä£ÐÍ¾ØÕóºÍÊÓÍ¼-Ä£ÐÍ¾ØÕó
     vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
+
+    // ¹¹½¨Ä£ÐÍ¾ØÕó¡ª¡ªcube
     mMat = glm::translate(glm::mat4(1.0f), glm::vec3(cubeLocX, cubeLocY, cubeLocZ));
     mvMat = vMat * mMat;
 
@@ -99,6 +116,24 @@ void display(GLFWwindow* window, double currentTime) {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     glDrawArrays(GL_TRIANGLES, 0, 36);
+
+    // ¹¹½¨Ä£ÐÍ¾ØÕó¡ª¡ªpyramid
+    mMat = glm::translate(glm::mat4(1.0f), glm::vec3(pyramidLocX, pyramidLocY, pyramidLocZ));
+    mvMat = vMat * mMat;
+
+    // ½«Í¸ÊÓ¾ØÕóºÍMV¾ØÕó¸´ÖÆ¸øÏàÓ¦µÄÍ³Ò»±äÁ¿
+    glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
+
+    // ½«VBO¹ØÁª¸ø¶¥µã×ÅÉ«Æ÷ÖÐÏàÓ¦µÄ¶¥µãÊôÐÔ
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(0);
+
+    // µ÷ÕûOpenGLÉèÖÃ£¬»æÖÆÄ£ÐÍ
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+    glDrawArrays(GL_TRIANGLES, 0, 18);
 }
 
 int main(void) {                            // main()ºÍÖ®Ç°µÄÃ»ÓÐ±ä»¯
