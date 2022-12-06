@@ -20,6 +20,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "4.First3D_Instance", "4.Fir
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "5.More3D", "5.More3D\5.More3D.vcxproj", "{49F5974A-7191-4EA2-8B25-67C4122C4FAB}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "6.SolarSystem", "6.SolarSystem\6.SolarSystem.vcxproj", "{0021183E-6D29-4537-87A2-A85FFC53D653}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -84,6 +86,14 @@ Global
 		{49F5974A-7191-4EA2-8B25-67C4122C4FAB}.Release|x64.Build.0 = Release|x64
 		{49F5974A-7191-4EA2-8B25-67C4122C4FAB}.Release|x86.ActiveCfg = Release|Win32
 		{49F5974A-7191-4EA2-8B25-67C4122C4FAB}.Release|x86.Build.0 = Release|Win32
+		{0021183E-6D29-4537-87A2-A85FFC53D653}.Debug|x64.ActiveCfg = Debug|x64
+		{0021183E-6D29-4537-87A2-A85FFC53D653}.Debug|x64.Build.0 = Debug|x64
+		{0021183E-6D29-4537-87A2-A85FFC53D653}.Debug|x86.ActiveCfg = Debug|Win32
+		{0021183E-6D29-4537-87A2-A85FFC53D653}.Debug|x86.Build.0 = Debug|Win32
+		{0021183E-6D29-4537-87A2-A85FFC53D653}.Release|x64.ActiveCfg = Release|x64
+		{0021183E-6D29-4537-87A2-A85FFC53D653}.Release|x64.Build.0 = Release|x64
+		{0021183E-6D29-4537-87A2-A85FFC53D653}.Release|x86.ActiveCfg = Release|Win32
+		{0021183E-6D29-4537-87A2-A85FFC53D653}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
