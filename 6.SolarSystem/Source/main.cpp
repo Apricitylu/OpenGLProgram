@@ -88,6 +88,7 @@ void init(GLFWwindow* window) {
 void display(GLFWwindow* window, double currentTime) {
     glClear(GL_DEPTH_BUFFER_BIT);//清除深度缓冲区
     glClear(GL_COLOR_BUFFER_BIT);
+    glEnable(GL_CULL_FACE);
     glUseProgram(renderingProgram);
 
     // 获取MV矩阵和投影矩阵的统一变量
@@ -116,6 +117,7 @@ void display(GLFWwindow* window, double currentTime) {
     glEnableVertexAttribArray(0);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LEQUAL);
+    glFrontFace(GL_CCW);
     glDrawArrays(GL_TRIANGLES, 0, 18);    // 绘制太阳
     mvStack.pop();                        // 从堆栈中移除太阳的轴旋转
 
