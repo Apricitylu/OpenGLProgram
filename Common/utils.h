@@ -17,5 +17,5 @@ public:
 	static bool checkOpenGLError();
 	static string readShaderSource(const char* filePath);
 	static GLuint createShaderProgram(const char* vp, const char* fp);
-	static void createShaderProgram2(const char* vp, const char* fp, GLuint& pro);
+	static GLuint loadTexture(const char* texImagePath);
 };

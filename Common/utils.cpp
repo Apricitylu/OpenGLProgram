@@ -114,56 +114,15 @@ GLuint Utils::createShaderProgram(const char* vp, const char* fp)
 	return vfProgram;
 }
 
-void Utils::createShaderProgram2(const char* vp, const char* fp, GLuint& pro)
+GLuint Utils::loadTexture(const char* texImagePath)
 {
-	GLint vertCompiled;
-	GLint fragCompiled;
-	GLint linked;
+	GLuint textureID;
 
-	//所有顶点着色器的主要目标都是将顶点发送给管线
-	string vertShaderStr = readShaderSource(vp);
-	string fragShaderStr = readShaderSource(fp);
-
-	const char* vshaderSource = vertShaderStr.c_str();
-	const char* fshaderSource = fragShaderStr.c_str();
-
-	GLuint vShader = glCreateShader(GL_VERTEX_SHADER);
-	GLuint fShader = glCreateShader(GL_FRAGMENT_SHADER);
-
-	glShaderSource(vShader, 1, &vshaderSource, NULL);
-	glShaderSource(fShader, 1, &fshaderSource, NULL);
-
-	glCompileShader(vShader);
-	checkOpenGLError();
-	glGetShaderiv(vShader, GL_COMPILE_STATUS, &vertCompiled);
-	if (vertCompiled != 1)
+	textureID = SOIL_load_OGL_texture(texImagePath, SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_INVERT_Y);
+	if (textureID == 0)
 	{
-		cout << "vextex complication failed" << endl;
-		printShaderLog(vShader);
+		cout << "could not find texture file" << texImagePath << endl;
 	}
 
-	glCompileShader(fShader);
-	checkOpenGLError();
-	glGetShaderiv(fShader, GL_COMPILE_STATUS, &fragCompiled);
-	if (fragCompiled != 1)
-	{
-		cout << "fragment complication failed" << endl;
-		printShaderLog(fShader);
-	}
-
-	GLuint vfProgram = glCreateProgram();
-
-	glAttachShader(vfProgram, vShader);
-	glAttachShader(vfProgram, fShader);
-
-	glLinkProgram(vfProgram);
-	checkOpenGLError();
-	glGetProgramiv(vfProgram, GL_LINK_STATUS, &linked);
-	if (linked != 1)
-	{
-		cout << "linking failed" << endl;
-		printProgramLog(vfProgram);
-	}
-
-	pro = vfProgram;
+	return textureID;
 }
