@@ -124,5 +124,10 @@ GLuint Utils::loadTexture(const char* texImagePath)
 		cout << "could not find texture file" << texImagePath << endl;
 	}
 
+	//启用多级渐远纹理贴图（Mipmapping）
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
 	return textureID;
 }
