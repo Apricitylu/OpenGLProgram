@@ -1,5 +1,6 @@
 #version 430
 
+// noperspective in vec2 tc; //禁用OpenGL的透视校正
 in vec2 tc;      // 输入插值过的材质坐标
 
 out vec4 color;
