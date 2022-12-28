@@ -39,7 +39,7 @@ int width, height;
 float aspect, timeFactor;
 glm::mat4 pMat, vMat, mMat, mvMat, tMat, rMat;
 
-Sphere mySphere(48);
+Sphere mySphere(12);
 
 void setupVertices(void) {    // 36个顶点，12个三角形，组成了放置在原点处的2×2×2立方体
     std::vector<int> ind = mySphere.getIndices();
@@ -121,6 +121,7 @@ void display(GLFWwindow* window, double currentTime) {
     // 调整OpenGL设置，绘制模型
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);//呈现线框模型
     glDrawArrays(GL_TRIANGLES, 0, mySphere.getNumIndices());
 }
 
@@ -128,7 +129,7 @@ int main(void) {                            // main()和之前的没有变化
     if (!glfwInit()) { exit(EXIT_FAILURE); }
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    GLFWwindow* window = glfwCreateWindow(600, 600, "Firet3D", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(600, 600, "SphereDemo", NULL, NULL);
     glfwMakeContextCurrent(window);
     if (glewInit() != GLEW_OK) { exit(EXIT_FAILURE); }
     glfwSwapInterval(1);

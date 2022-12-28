@@ -28,14 +28,14 @@ void Sphere::init(int prec) {
     for (int i = 0; i < numIndices; i++) { indices.push_back(0); }
 
     // 计算三角形顶点
-    for (int i = 0; i <= prec; i++) {
-        for (int j = 0; j <= prec; j++) {
+    for (int i = 0; i <= prec; i++) {//球体中的每个水平切片i
+        for (int j = 0; j <= prec; j++) {//切片i中的每个顶点j
             float y = (float)cos(toRadians(180.0f - i * 180.0f / prec));
-            float x = -(float)cos(toRadians(j * 360.0f / prec)) * (float)abs(cos(asin(y)));
-            float z = (float)sin(toRadians(j * 360.0f / prec)) * (float)abs(cos(asin(y)));
+            float z = (float)cos(toRadians(j * 360.0f / prec)) * (float)abs(cos(asin(y)));
+            float x = (float)sin(toRadians(j * 360.0f / prec)) * (float)abs(cos(asin(y)));
             vertices[i * (prec + 1) + j] = glm::vec3(x, y, z);
             texCoords[i * (prec + 1) + j] = glm::vec2(((float)j / prec), ((float)i / prec));
-            normals[i * (prec + 1) + j] = glm::vec3(x, y, z);
+            normals[i * (prec + 1) + j] = glm::vec3(x, y, z);//从球体中心指向顶点的向量恰好等于该顶点的法向量
         }
     }
 

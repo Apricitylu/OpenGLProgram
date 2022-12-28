@@ -9,5 +9,5 @@ in vec4 varyingColor;
 
 void main(void)
 { 
-	color = varyingColor;
+	color = vec4(1.0, 1.0, 1.0, 1.0);
 }
