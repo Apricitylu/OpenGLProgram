@@ -19,7 +19,7 @@
 #include <vector>
 
 #include "../../Common/utils.h"
-#include "../../Common/Sphere.h"
+#include "../../Common/Torus.h"
 
 
 using namespace std;
@@ -39,54 +39,53 @@ int width, height;
 float aspect, timeFactor;
 glm::mat4 pMat, vMat, mMat, mvMat, tMat, rMat;
 
-Sphere mySphere(12);
+Torus myTorus(0.5f, 0.2f, 12);
 
-void setupVertices(void) {    // 36个顶点，12个三角形，组成了放置在原点处的2×2×2立方体
-    std::vector<int> ind = mySphere.getIndices();
-    std::vector<glm::vec3> vert = mySphere.getVertices();
-    std::vector<glm::vec2> tex = mySphere.getTexCoords();
-    std::vector<glm::vec3> norm = mySphere.getNormals();
+void setupVertices(void) {
+    std::vector<int> ind = myTorus.getIndices();
+    std::vector<glm::vec3> vert = myTorus.getVertices();
+    std::vector<glm::vec2> tex = myTorus.getTexCoords();
+    std::vector<glm::vec3> norm = myTorus.getNormals();
 
-    std::vector<float> pvalues;     // 顶点位置
-    std::vector<float> tvalues;     // 纹理坐标
-    std::vector<float> nvalues;     // 法向量
+    std::vector<float> pvalues;
+    std::vector<float> tvalues;
+    std::vector<float> nvalues;
 
-    int numIndices = mySphere.getNumIndices();
-    for (int i = 0; i < numIndices; i++) {
-        pvalues.push_back((vert[ind[i]]).x);
-        pvalues.push_back((vert[ind[i]]).y);
-        pvalues.push_back((vert[ind[i]]).z);
+    int numVertices = myTorus.getNumVertices();
+    for (int i = 0; i < numVertices; i++) {
+        pvalues.push_back(vert[i].x);
+        pvalues.push_back(vert[i].y);
+        pvalues.push_back(vert[i].z);
 
-        tvalues.push_back((tex[ind[i]]).s);
-        tvalues.push_back((tex[ind[i]]).t);
+        tvalues.push_back(tex[i].s);
+        tvalues.push_back(tex[i].t);
 
-        nvalues.push_back((norm[ind[i]]).x);
-        nvalues.push_back((norm[ind[i]]).y);
-        nvalues.push_back((norm[ind[i]]).z);
+        nvalues.push_back(norm[i].x);
+        nvalues.push_back(norm[i].y);
+        nvalues.push_back(norm[i].z);
     }
-
     glGenVertexArrays(1, vao);
     glBindVertexArray(vao[0]);
-    glGenBuffers(3, vbo);
+    glGenBuffers(4, vbo);           // 像以前一样生成VBO，并新增一个用于索引
 
-    // 把顶点放入缓冲区 #0
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);          // 顶点位置
     glBufferData(GL_ARRAY_BUFFER, pvalues.size() * 4, &pvalues[0], GL_STATIC_DRAW);
 
-    // 把纹理坐标放入缓冲区 #1
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);          // 纹理坐标
     glBufferData(GL_ARRAY_BUFFER, tvalues.size() * 4, &tvalues[0], GL_STATIC_DRAW);
 
-    // 把法向量放入缓冲区 #2
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);          // 法向量
     glBufferData(GL_ARRAY_BUFFER, nvalues.size() * 4, &nvalues[0], GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[3]);  // 索引
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, ind.size() * 4, &ind[0], GL_STATIC_DRAW);
 }
 
 void init(GLFWwindow* window) {
     const char* vp = "Source/vertShader.glsl";
     const char* fp = "Source/fragShader.glsl";
     renderingProgram = Utils::createShaderProgram(vp, fp);
-    cameraX = 0.0f; cameraY = 0.0f; cameraZ = 3.0f;
+    cameraX = 0.0f; cameraY = 0.0f; cameraZ = 2.0f;
     LocX = 0.0f; LocY = 0.0f; LocZ = 0.0f; // 沿Y轴下移以展示透视
     setupVertices();
 }
@@ -120,18 +119,20 @@ void display(GLFWwindow* window, double currentTime) {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
 
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[3]);
+
     // 调整OpenGL设置，绘制模型
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);//呈现线框模型
-    glDrawArrays(GL_TRIANGLES, 0, mySphere.getNumIndices());
+    glDrawElements(GL_TRIANGLES, myTorus.getNumIndices(), GL_UNSIGNED_INT, 0);
 }
 
 int main(void) {                            // main()和之前的没有变化
     if (!glfwInit()) { exit(EXIT_FAILURE); }
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    GLFWwindow* window = glfwCreateWindow(600, 600, "SphereDemo", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(600, 600, "TorusDemo", NULL, NULL);
     glfwMakeContextCurrent(window);
     if (glewInit() != GLEW_OK) { exit(EXIT_FAILURE); }
     glfwSwapInterval(1);

@@ -15,25 +15,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="utils.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Sphere.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Torus.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
+    <ClCompile Include="Source\main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="utils.cpp">
+    <None Include="Source\fragShader.glsl">
       <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Sphere.cpp">
+    </None>
+    <None Include="Source\vertShader.glsl">
       <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Torus.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
+    </None>
   </ItemGroup>
 </Project>
