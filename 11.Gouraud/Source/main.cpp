@@ -33,13 +33,35 @@ GLuint renderingProgram;
 GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
 
-// 分配在 display() 函数中使用的变量空间，这样它们就不必在渲染过程中分配
-GLuint mLoc, vLoc, mvLoc, projLoc, tfLoc;
-int width, height;
-float aspect, timeFactor;
-glm::mat4 pMat, vMat, mMat, mvMat, tMat, rMat;
+// 为display() 函数分配变量
+GLuint mvLoc, projLoc, nLoc;
 
-Torus myTorus(0.5f, 0.2f, 12);
+int width, height;
+float aspect;
+
+// 着色器统一变量中的位置
+GLuint globalAmbLoc, ambLoc, diffLoc, specLoc, posLoc, mAmbLoc, mDiffLoc, mSpecLoc, mShiLoc;
+
+glm::mat4 pMat, vMat, mMat, mvMat, invTrMat;
+glm::vec3 currentLightPos, lightPosV;   // 在模型和视觉空间中的光照位置，Vector3f类型
+float lightPos[3];                      // 光照位置的浮点数组
+
+// 初始化光照位置
+glm::vec3 initialLightLoc = glm::vec3(5.0f, 2.0f, 2.0f);
+
+// 白光特性
+float globalAmbient[4] = { 0.7f, 0.7f, 0.7f, 1.0f };
+float lightAmbient[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+float lightDiffuse[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+float lightSpecular[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+// 黄金材质特性
+float* matAmb = Utils::goldAmbient();
+float* matDif = Utils::goldDiffuse();
+float* matSpe = Utils::goldSpecular();
+float matShi = Utils::goldShininess();
+
+Torus myTorus(0.5f, 0.2f, 64);
 
 void setupVertices(void) {
     std::vector<int> ind = myTorus.getIndices();
@@ -90,14 +112,45 @@ void init(GLFWwindow* window) {
     setupVertices();
 }
 
+void installLights(glm::mat4 vMatrix) {
+    // 将光源位置转换为视图空间坐标，并存入浮点数组
+    lightPosV = glm::vec3(vMatrix * glm::vec4(currentLightPos, 1.0));
+    lightPos[0] = lightPosV.x;
+    lightPos[1] = lightPosV.y;
+    lightPos[2] = lightPosV.z;
+
+    // 在着色器中获取光源位置和材质属性
+    globalAmbLoc = glGetUniformLocation(renderingProgram, "globalAmbient");
+    ambLoc = glGetUniformLocation(renderingProgram, "light.ambient");
+    diffLoc = glGetUniformLocation(renderingProgram, "light.diffuse");
+    specLoc = glGetUniformLocation(renderingProgram, "light.specular");
+    posLoc = glGetUniformLocation(renderingProgram, "light.position");
+    mAmbLoc = glGetUniformLocation(renderingProgram, "material.ambient");
+    mDiffLoc = glGetUniformLocation(renderingProgram, "material.diffuse");
+    mSpecLoc = glGetUniformLocation(renderingProgram, "material.specular");
+    mShiLoc = glGetUniformLocation(renderingProgram, "material.shininess");
+
+    // 在着色器中为光源与材质统一变量赋值
+    glProgramUniform4fv(renderingProgram, globalAmbLoc, 1, globalAmbient);
+    glProgramUniform4fv(renderingProgram, ambLoc, 1, lightAmbient);
+    glProgramUniform4fv(renderingProgram, diffLoc, 1, lightDiffuse);
+    glProgramUniform4fv(renderingProgram, specLoc, 1, lightSpecular);
+    glProgramUniform3fv(renderingProgram, posLoc, 1, lightPos);
+    glProgramUniform4fv(renderingProgram, mAmbLoc, 1, matAmb);
+    glProgramUniform4fv(renderingProgram, mDiffLoc, 1, matDif);
+    glProgramUniform4fv(renderingProgram, mSpecLoc, 1, matSpe);
+    glProgramUniform1f(renderingProgram, mShiLoc, matShi);
+}
+
 void display(GLFWwindow* window, double currentTime) {
     glClear(GL_DEPTH_BUFFER_BIT);//清除深度缓冲区
     glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(renderingProgram);
 
-    // 获取MV矩阵和投影矩阵的统一变量
+    // 用于模型-视图变换、投影以及逆转置(法向量)矩阵的统一变量
     mvLoc = glGetUniformLocation(renderingProgram, "mv_matrix");
     projLoc = glGetUniformLocation(renderingProgram, "proj_matrix");
+    nLoc = glGetUniformLocation(renderingProgram, "norm_matrix");
 
     // 构建透视矩阵
     glfwGetFramebufferSize(window, &width, &height);
@@ -108,23 +161,38 @@ void display(GLFWwindow* window, double currentTime) {
     vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
     mMat = glm::translate(glm::mat4(1.0f), glm::vec3(LocX, LocY, LocZ));
     mMat *= glm::rotate(glm::mat4(1.0f), (float)currentTime * 0.1f, glm::vec3(1.0, 0.0, 0.0));
+
+    // 通过合并矩阵v和m，创建模型-视图(MV)矩阵，如前
     mvMat = vMat * mMat;
 
-    // 将透视矩阵和MV矩阵复制给相应的统一变量
+    // 基于当前光源位置，初始化光照
+    currentLightPos = glm::vec3(initialLightLoc.x, initialLightLoc.y, initialLightLoc.z);
+    installLights(vMat);
+
+    // 构建MV矩阵的逆转置矩阵，以变换法向量
+    invTrMat = glm::transpose(glm::inverse(mvMat));
+
+    // 将MV、PROJ以及逆转置(法向量)矩阵传入相应的统一变量
     glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
+    glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
 
-    // 将VBO关联给顶点着色器中相应的顶点属性
+    // 在顶点着色器中，将顶点缓冲区(VBO #0)绑定到顶点属性#0
     glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[3]);
+    // 在顶点着色器中，将法向缓冲区(VBO #2)绑定到顶点属性#1
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+    glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
+    glEnableVertexAttribArray(1);
 
-    // 调整OpenGL设置，绘制模型
+    glEnable(GL_CULL_FACE);
+    glFrontFace(GL_CCW);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);//呈现线框模型
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[3]);
     glDrawElements(GL_TRIANGLES, myTorus.getNumIndices(), GL_UNSIGNED_INT, 0);
 }
 
@@ -132,7 +200,7 @@ int main(void) {                            // main()和之前的没有变化
     if (!glfwInit()) { exit(EXIT_FAILURE); }
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    GLFWwindow* window = glfwCreateWindow(600, 600, "TorusDemo", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(600, 600, "Demo", NULL, NULL);
     glfwMakeContextCurrent(window);
     if (glewInit() != GLEW_OK) { exit(EXIT_FAILURE); }
     glfwSwapInterval(1);
