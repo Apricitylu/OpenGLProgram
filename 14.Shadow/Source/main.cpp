@@ -49,12 +49,17 @@ float lightAmbient[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 float lightDiffuse[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 float lightSpecular[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-// 黄金材质特性
-float* matAmb = Utils::goldAmbient();
-float* matDif = Utils::goldDiffuse();
-float* matSpe = Utils::goldSpecular();
-float matShi = Utils::goldShininess();
+// 金字塔的黄金材质
+float* goldMatAmb = Utils::goldAmbient();
+float* goldMatDif = Utils::goldDiffuse();
+float* goldMatSpe = Utils::goldSpecular();
+float goldMatShi = Utils::goldShininess();
 
+// 环面的青铜材质
+float* bronzeMatAmb = Utils::bronzeAmbient();
+float* bronzeMatDif = Utils::bronzeDiffuse();
+float* bronzeMatSpe = Utils::bronzeSpecular();
+float bronzeMatShi = Utils::bronzeShininess();
 
 // 环面、金字塔、相机和光源的位置
 glm::vec3 modelLoc(-1.0f, 0.1f, 0.3f);
@@ -149,7 +154,7 @@ void init(GLFWwindow* window) {
     setupModelVertices();
 }
 
-void installLights(glm::mat4 vMatrix) {
+void installLights(glm::mat4 vMatrix, float* matAmb, float* matDif, float* matSpe, float matShi) {
     // 将光源位置转换为视图空间坐标，并存入浮点数组
     glm::vec3 lightPosV = glm::vec3(vMatrix * glm::vec4(lightLoc, 1.0));
 
@@ -206,7 +211,7 @@ void display(GLFWwindow* window, double currentTime) {
     mvMat = vMat * mMat;
 
     // 基于当前光源位置，初始化光照
-    installLights(vMat);
+    installLights(vMat, goldMatAmb, goldMatDif, goldMatSpe, goldMatShi);
 
     // 构建MV矩阵的逆转置矩阵，以变换法向量
     invTrMat = glm::transpose(glm::inverse(mvMat));
@@ -233,6 +238,9 @@ void display(GLFWwindow* window, double currentTime) {
     // 构建视图矩阵、模型矩阵和视图-模型矩阵
     mMat = glm::translate(glm::mat4(1.0f), modelLoc);
     mvMat = vMat * mMat;
+
+    // 基于当前光源位置，初始化光照
+    installLights(vMat, bronzeMatAmb, bronzeMatDif, bronzeMatSpe, bronzeMatShi);
 
     // 构建MV矩阵的逆转置矩阵，以变换法向量
     invTrMat = glm::transpose(glm::inverse(mvMat));
