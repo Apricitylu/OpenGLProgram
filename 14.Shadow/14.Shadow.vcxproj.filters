@@ -26,5 +26,11 @@
     <None Include="Source\vertShader.glsl">
       <Filter>源文件</Filter>
     </None>
+    <None Include="Source\shadowFragShader.glsl">
+      <Filter>源文件</Filter>
+    </None>
+    <None Include="Source\shadowVertShader.glsl">
+      <Filter>源文件</Filter>
+    </None>
   </ItemGroup>
 </Project>

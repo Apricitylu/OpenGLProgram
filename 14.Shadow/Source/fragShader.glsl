@@ -3,6 +3,7 @@ in vec3 varyingNormal;
 in vec3 varyingLightDir;
 in vec3 varyingVertPos;
 in vec3 varyingHalfVector;
+in vec4 shadow_coord;
 out vec4 fragColor;
 
 // 与顶点着色器相同的统一变量
@@ -31,6 +32,8 @@ uniform mat4 mv_matrix;
 uniform mat4 proj_matrix;
 uniform mat4 norm_matrix;
 
+layout (binding=0) uniform sampler2DShadow shTex;
+
 void main(void)
 { 
 	// 正规化光照向量、法向量、视觉向量
@@ -50,5 +53,13 @@ void main(void)
 	vec3 diffuse = light.diffuse.xyz * material.diffuse.xyz * max(cosTheta,0.0); 
 	vec3 specular = light.specular.xyz * material.specular.xyz * pow(max(cosPhi,0.0), material.shininess*3.0); // 最后乘以3.0作为改善镜面高光的微调
 
-	fragColor = vec4((ambient + diffuse + specular), 1.0);
+	float notlnShadow = textureProj(shTex, shadow_coord);
+	if(notlnShadow == 1.0)
+	{
+		fragColor = vec4((ambient + diffuse + specular), 1.0);
+	}
+	else
+	{
+		fragColor = vec4((ambient), 1.0);
+	}
 }

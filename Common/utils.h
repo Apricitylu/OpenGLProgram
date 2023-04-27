@@ -18,6 +18,7 @@ public:
 	static string readShaderSource(const char* filePath);
 	static GLuint createShaderProgram(const char* vp, const char* fp);
 	static GLuint loadTexture(const char* texImagePath);
+    static float toRadians(float degrees);
 
     // 黄金材质 — 环境光、漫反射、镜面反射和光泽
     static float* goldAmbient();

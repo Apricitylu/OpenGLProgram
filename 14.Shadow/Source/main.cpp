@@ -28,15 +28,13 @@ using namespace std;
 #define numVAOs 1
 #define numVBOs 7
 
+GLuint renderingProgram_shadow;
 GLuint renderingProgram;
 GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
 
 // 为display() 函数分配变量
-GLuint mvLoc, projLoc, nLoc;
-
-int width, height;
-float aspect;
+GLuint mvLoc, projLoc, nLoc, sLoc;
 
 // 着色器统一变量中的位置
 GLuint globalAmbLoc, ambLoc, diffLoc, specLoc, posLoc, mAmbLoc, mDiffLoc, mSpecLoc, mShiLoc;
@@ -66,9 +64,19 @@ glm::vec3 modelLoc(-1.0f, 0.1f, 0.3f);
 glm::vec3 torusLoc(1.6f, 0.0f, -0.3f);
 glm::vec3 cameraLoc(0.0f, 0.2f, 6.0f);
 glm::vec3 lightLoc(-3.8f, 2.2f, 1.1f);
+glm::vec3 orgin(0.0f, 0.0f, 0.0f);
+glm::vec3 up(0.0f, 1.0f, 0.0f);
 
-Torus myTorus(0.5f, 0.2f, 64);
+Torus myTorus(0.6f, 0.4f, 64);
 ImportedModel myModel("shuttle.obj");
+
+// 阴影相关变量
+GLuint shadowTex, shadowBuffer;
+glm::mat4 lightVmatrix;
+glm::mat4 lightPmatrix;
+glm::mat4 shadowMVP1;
+glm::mat4 shadowMVP2;
+glm::mat4 b;
 
 void setupTorusVertices(void) {
     std::vector<int> ind = myTorus.getIndices();
@@ -141,10 +149,32 @@ void setupModelVertices(void) {
     glBufferData(GL_ARRAY_BUFFER, nvalues.size() * 4, &nvalues[0], GL_STATIC_DRAW);
 }
 
+void setupShadowBuffers(GLFWwindow* window) {
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
+
+    // 创建自定义帧缓冲区
+    glGenFramebuffers(1, &shadowBuffer);
+
+    // 创建阴影纹理并让它存储深度信息
+    // 这些步骤与程序5.2中相似
+    glGenTextures(1, &shadowTex);
+    glBindTexture(GL_TEXTURE_2D, shadowTex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+}
+
 void init(GLFWwindow* window) {
     const char* vp = "Source/vertShader.glsl";
     const char* fp = "Source/fragShader.glsl";
     renderingProgram = Utils::createShaderProgram(vp, fp);
+
+    vp = "Source/shadowVertShader.glsl";
+    fp = "Source/shadowFragShader.glsl";
+    renderingProgram_shadow = Utils::createShaderProgram(vp, fp);
 
     glGenVertexArrays(1, vao);
     glBindVertexArray(vao[0]);
@@ -152,6 +182,13 @@ void init(GLFWwindow* window) {
 
     setupTorusVertices();
     setupModelVertices();
+    setupShadowBuffers(window);
+
+    b = glm::mat4(
+        0.5f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.5f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.5f, 0.0f,
+        0.5f, 0.5f, 0.5f, 1.0f);
 }
 
 void installLights(glm::mat4 vMatrix, float* matAmb, float* matDif, float* matSpe, float matShi) {
@@ -186,81 +223,44 @@ void installLights(glm::mat4 vMatrix, float* matAmb, float* matDif, float* matSp
     glProgramUniform1f(renderingProgram, mShiLoc, matShi);
 }
 
-void display(GLFWwindow* window, double currentTime) {
-    glClear(GL_DEPTH_BUFFER_BIT);//清除深度缓冲区
-    glClear(GL_COLOR_BUFFER_BIT);
-    glUseProgram(renderingProgram);
+// 接下来是第1轮和第2轮的代码
+// 这些代码和之前的大体相同
+// 与阴影相关的新增代码已高亮
+void passOne(GLFWwindow* window, double currentTime) {
+    glUseProgram(renderingProgram_shadow);
 
-    // 用于模型-视图变换、投影以及逆转置(法向量)矩阵的统一变量
-    mvLoc = glGetUniformLocation(renderingProgram, "mv_matrix");
-    projLoc = glGetUniformLocation(renderingProgram, "proj_matrix");
-    nLoc = glGetUniformLocation(renderingProgram, "norm_matrix");
+    sLoc = glGetUniformLocation(renderingProgram_shadow, "shadowMVP");
 
-    // 构建透视矩阵
-    glfwGetFramebufferSize(window, &width, &height);
-    aspect = (float)width / (float)height;
-    pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f); // 1.0472 radians = 60 degrees
-
-    /*Torus*/
-    // 构建视图矩阵、模型矩阵和视图-模型矩阵
-    vMat = glm::translate(glm::mat4(1.0f), -cameraLoc);
+    //Torus
     mMat = glm::translate(glm::mat4(1.0f), torusLoc);
     mMat *= glm::rotate(glm::mat4(1.0f), (float)currentTime * 0.1f, glm::vec3(1.0, 0.0, 0.0));
 
-    // 通过合并矩阵v和m，创建模型-视图(MV)矩阵，如前
-    mvMat = vMat * mMat;
+    shadowMVP1 = lightPmatrix * lightVmatrix * mMat;
+    glUniformMatrix4fv(sLoc, 1, GL_FALSE, glm::value_ptr(shadowMVP1));
 
-    // 基于当前光源位置，初始化光照
-    installLights(vMat, goldMatAmb, goldMatDif, goldMatSpe, goldMatShi);
-
-    // 构建MV矩阵的逆转置矩阵，以变换法向量
-    invTrMat = glm::transpose(glm::inverse(mvMat));
-
-    // 将MV、PROJ以及逆转置(法向量)矩阵传入相应的统一变量
-    glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
-    glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
-    glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
-
-    // 在顶点着色器中，将顶点缓冲区(VBO #0)绑定到顶点属性#0
     glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
 
-    // 在顶点着色器中，将法向缓冲区(VBO #2)绑定到顶点属性#1
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
-    glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
-    glEnableVertexAttribArray(1);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_CULL_FACE);
+    glFrontFace(GL_CCW);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[3]);
     glDrawElements(GL_TRIANGLES, myTorus.getNumIndices(), GL_UNSIGNED_INT, 0);
 
-    /*Model*/
-    // 构建视图矩阵、模型矩阵和视图-模型矩阵
+    //Model
     mMat = glm::translate(glm::mat4(1.0f), modelLoc);
-    mvMat = vMat * mMat;
 
-    // 基于当前光源位置，初始化光照
-    installLights(vMat, bronzeMatAmb, bronzeMatDif, bronzeMatSpe, bronzeMatShi);
+    shadowMVP1 = lightPmatrix * lightVmatrix * mMat;
+    glUniformMatrix4fv(sLoc, 1, GL_FALSE, glm::value_ptr(shadowMVP1));
 
-    // 构建MV矩阵的逆转置矩阵，以变换法向量
-    invTrMat = glm::transpose(glm::inverse(mvMat));
-
-    // 将透视矩阵和MV矩阵复制给相应的统一变量
-    glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
-    glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
-    glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
-
-    // 将VBO关联给顶点着色器中相应的顶点属性
     glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
 
-    // 在顶点着色器中，将法向缓冲区(VBO #2)绑定到顶点属性#1
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[6]);
-    glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
-    glEnableVertexAttribArray(1);
-
-    // 调整OpenGL设置，绘制模型
     glEnable(GL_CULL_FACE);
     glFrontFace(GL_CCW);
     glEnable(GL_DEPTH_TEST);
@@ -268,10 +268,128 @@ void display(GLFWwindow* window, double currentTime) {
     glDrawArrays(GL_TRIANGLES, 0, myModel.getNumVertices());
 }
 
+void passTwo(GLFWwindow* window, double currentTime) {
+    glUseProgram(renderingProgram);
+
+    mvLoc = glGetUniformLocation(renderingProgram, "mv_matrix");
+    projLoc = glGetUniformLocation(renderingProgram, "proj_matrix");
+    nLoc = glGetUniformLocation(renderingProgram, "norm_matrix");
+    sLoc = glGetUniformLocation(renderingProgram, "shadowMVP2");
+
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
+    float aspect = (float)width / (float)height;
+    pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
+    vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraLoc.x, -cameraLoc.y, -cameraLoc.z));
+
+    //Torus
+    mMat = glm::translate(glm::mat4(1.0f), torusLoc);
+    mMat *= glm::rotate(glm::mat4(1.0f), (float)currentTime * 0.1f, glm::vec3(1.0, 0.0, 0.0));
+
+    mvMat = vMat * mMat;
+
+    installLights(vMat, goldMatAmb, goldMatDif, goldMatSpe, goldMatShi);
+
+    invTrMat = glm::transpose(glm::inverse(mvMat));
+
+    shadowMVP2 = b * lightPmatrix * lightVmatrix * mMat;
+
+    glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
+    glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
+    glUniformMatrix4fv(sLoc, 1, GL_FALSE, glm::value_ptr(shadowMVP2));
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+    glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
+    glEnableVertexAttribArray(1);
+
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_CULL_FACE);
+    glFrontFace(GL_CCW);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[3]);
+    glDrawElements(GL_TRIANGLES, myTorus.getNumIndices(), GL_UNSIGNED_INT, 0);
+
+    //Model
+    mMat = glm::translate(glm::mat4(1.0f), modelLoc);
+    mvMat = vMat * mMat;
+
+    installLights(vMat, bronzeMatAmb, bronzeMatDif, bronzeMatSpe, bronzeMatShi);
+
+    invTrMat = glm::transpose(glm::inverse(mvMat));
+
+    shadowMVP2 = b * lightPmatrix * lightVmatrix * mMat;
+
+    glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
+    glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
+    glUniformMatrix4fv(sLoc, 1, GL_FALSE, glm::value_ptr(shadowMVP2));
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[6]);
+    glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
+    glEnableVertexAttribArray(1);
+
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_CULL_FACE);
+    glFrontFace(GL_CCW);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+    glDrawArrays(GL_TRIANGLES, 0, myModel.getNumVertices());
+}
+
+void display(GLFWwindow* window, double currentTime) {
+    glClear(GL_DEPTH_BUFFER_BIT);//清除深度缓冲区
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // 从光源视角初始化视觉矩阵以及透视矩阵，以便在第1轮中使用
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
+    float aspect = (float)width / (float)height;
+    //orgin = glm::normalize(torusLoc - lightLoc);
+    //glm::vec3 lightRight = glm::normalize(glm::cross(up, orgin));
+    //up = glm::normalize(glm::cross(orgin, lightRight));
+    lightVmatrix = glm::lookAt(lightLoc, orgin, up); // 从光源到原点的矩阵
+    lightPmatrix = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
+
+    // 使用自定义帧缓冲区，将阴影纹理附着到其上
+    glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowTex, 0);
+
+    // 关闭绘制颜色，同时开启深度计算
+    glDrawBuffer(GL_NONE);
+    glEnable(GL_DEPTH_TEST);
+
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset(2.0f, 4.0f);
+
+    passOne(window, currentTime);
+
+    glDisable(GL_POLYGON_OFFSET_FILL);
+
+    // 使用显示缓冲区，并重新开启绘制
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, shadowTex);
+    glDrawBuffer(GL_FRONT);              // 重新开启绘制颜色
+
+    passTwo(window, currentTime);
+}
+
 int main(void) {                            // main()和之前的没有变化
     if (!glfwInit()) { exit(EXIT_FAILURE); }
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_OPENGL_CORE_PROFILE, GLFW_OPENGL_PROFILE);
     GLFWwindow* window = glfwCreateWindow(600, 600, "Demo", NULL, NULL);
     glfwMakeContextCurrent(window);
     if (glewInit() != GLEW_OK) { exit(EXIT_FAILURE); }

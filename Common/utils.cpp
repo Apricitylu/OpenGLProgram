@@ -140,6 +140,8 @@ GLuint Utils::loadTexture(const char* texImagePath)
 	return textureID;
 }
 
+float Utils::toRadians(float degrees) { return (degrees * 2.0f * 3.14159f) / 360.0f; }
+
 // 黄金材质 — 环境光、漫反射、镜面反射和光泽
 float* Utils::goldAmbient() 
 {
