@@ -157,7 +157,6 @@ void setupShadowBuffers(GLFWwindow* window) {
     glGenFramebuffers(1, &shadowBuffer);
 
     // 创建阴影纹理并让它存储深度信息
-    // 这些步骤与程序5.2中相似
     glGenTextures(1, &shadowTex);
     glBindTexture(GL_TEXTURE_2D, shadowTex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
@@ -168,10 +167,12 @@ void setupShadowBuffers(GLFWwindow* window) {
 }
 
 void init(GLFWwindow* window) {
+    //正常绘制的Shader
     const char* vp = "Source/vertShader.glsl";
     const char* fp = "Source/fragShader.glsl";
     renderingProgram = Utils::createShaderProgram(vp, fp);
 
+    //用于绘制阴影贴图的shader
     vp = "Source/shadowVertShader.glsl";
     fp = "Source/shadowFragShader.glsl";
     renderingProgram_shadow = Utils::createShaderProgram(vp, fp);
@@ -182,8 +183,9 @@ void init(GLFWwindow* window) {
 
     setupTorusVertices();
     setupModelVertices();
-    setupShadowBuffers(window);
+    setupShadowBuffers(window);//初始化阴影贴图相关缓冲区
 
+    //b矩阵，用于从光照空间到纹理空间的转换
     b = glm::mat4(
         0.5f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.5f, 0.0f, 0.0f,
@@ -223,9 +225,7 @@ void installLights(glm::mat4 vMatrix, float* matAmb, float* matDif, float* matSp
     glProgramUniform1f(renderingProgram, mShiLoc, matShi);
 }
 
-// 接下来是第1轮和第2轮的代码
-// 这些代码和之前的大体相同
-// 与阴影相关的新增代码已高亮
+//第一轮绘制
 void passOne(GLFWwindow* window, double currentTime) {
     glUseProgram(renderingProgram_shadow);
 
@@ -235,7 +235,7 @@ void passOne(GLFWwindow* window, double currentTime) {
     mMat = glm::translate(glm::mat4(1.0f), torusLoc);
     mMat *= glm::rotate(glm::mat4(1.0f), (float)currentTime * 0.1f, glm::vec3(1.0, 0.0, 0.0));
 
-    shadowMVP1 = lightPmatrix * lightVmatrix * mMat;
+    shadowMVP1 = lightPmatrix * lightVmatrix * mMat;//从光源的角度绘制，因此取光源的V、P矩阵
     glUniformMatrix4fv(sLoc, 1, GL_FALSE, glm::value_ptr(shadowMVP1));
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
@@ -268,6 +268,7 @@ void passOne(GLFWwindow* window, double currentTime) {
     glDrawArrays(GL_TRIANGLES, 0, myModel.getNumVertices());
 }
 
+//第二轮
 void passTwo(GLFWwindow* window, double currentTime) {
     glUseProgram(renderingProgram);
 
@@ -292,6 +293,7 @@ void passTwo(GLFWwindow* window, double currentTime) {
 
     invTrMat = glm::transpose(glm::inverse(mvMat));
 
+    //构建光源视角环面的MV矩阵，用于提取阴影纹理
     shadowMVP2 = b * lightPmatrix * lightVmatrix * mMat;
 
     glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
@@ -324,6 +326,7 @@ void passTwo(GLFWwindow* window, double currentTime) {
 
     invTrMat = glm::transpose(glm::inverse(mvMat));
 
+    //构建光源视角环面的MV矩阵，用于提取阴影纹理
     shadowMVP2 = b * lightPmatrix * lightVmatrix * mMat;
 
     glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
@@ -361,7 +364,7 @@ void display(GLFWwindow* window, double currentTime) {
     lightVmatrix = glm::lookAt(lightLoc, orgin, up); // 从光源到原点的矩阵
     lightPmatrix = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
 
-    // 使用自定义帧缓冲区，将阴影纹理附着到其上
+    // 使用自定义帧缓冲区（id为shadowBuffer），将阴影纹理附着到其上
     glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowTex, 0);
 
@@ -369,6 +372,7 @@ void display(GLFWwindow* window, double currentTime) {
     glDrawBuffer(GL_NONE);
     glEnable(GL_DEPTH_TEST);
 
+    //减少阴影伪影
     glEnable(GL_POLYGON_OFFSET_FILL);
     glPolygonOffset(2.0f, 4.0f);
 
@@ -376,7 +380,7 @@ void display(GLFWwindow* window, double currentTime) {
 
     glDisable(GL_POLYGON_OFFSET_FILL);
 
-    // 使用显示缓冲区，并重新开启绘制
+    // 使用显示缓冲区（id为0），并重新开启绘制
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, shadowTex);

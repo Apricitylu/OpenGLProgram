@@ -53,7 +53,7 @@ void main(void)
 	vec3 diffuse = light.diffuse.xyz * material.diffuse.xyz * max(cosTheta,0.0); 
 	vec3 specular = light.specular.xyz * material.specular.xyz * pow(max(cosPhi,0.0), material.shininess*3.0); // 最后乘以3.0作为改善镜面高光的微调
 
-	float notlnShadow = textureProj(shTex, shadow_coord);
+	float notlnShadow = textureProj(shTex, shadow_coord);//阴影纹理中检索正确的值
 	if(notlnShadow == 1.0)
 	{
 		fragColor = vec4((ambient + diffuse + specular), 1.0);

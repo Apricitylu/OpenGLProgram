@@ -39,6 +39,6 @@ void main(void)
     varyingLightDir = light.position - varyingVertPos; 
     varyingNormal = (norm_matrix * vec4(vertNormal,1.0)).xyz; 
     varyingHalfVector = (varyingLightDir + (-varyingVertPos)).xyz; 
-    shadow_coord = shadowMVP2 * vec4(vertPos, 1.0);
+    shadow_coord = shadowMVP2 * vec4(vertPos, 1.0);//将顶点位置从相机空间转换为光照空间
     gl_Position = proj_matrix * mv_matrix * vec4(vertPos,1.0);
 }
