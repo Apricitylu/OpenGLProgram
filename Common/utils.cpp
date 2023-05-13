@@ -140,6 +140,32 @@ GLuint Utils::loadTexture(const char* texImagePath)
 	return textureID;
 }
 
+GLuint Utils::loadCubeMap(const char* mapDir) {
+	GLuint textureRef;
+
+	// 假设6个纹理图像文件xp、xn、yp、yn、zp、zn都是JPG格式图像
+	string xp = mapDir; xp = xp + "/xp.jpg";
+	string xn = mapDir; xn = xn + "/xn.jpg";
+	string yp = mapDir; yp = yp + "/yp.jpg";
+	string yn = mapDir; yn = yn + "/yn.jpg";
+	string zp = mapDir; zp = zp + "/zp.jpg";
+	string zn = mapDir; zn = zn + "/zn.jpg";
+
+	textureRef = SOIL_load_OGL_cubemap(xp.c_str(), xn.c_str(), yp.c_str(), yn.c_str(),
+		zp.c_str(), zn.c_str(), SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+
+	if (textureRef == 0) cout << "didnt find cube map image file" << endl;
+
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureRef);
+
+	// 减少接缝
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	return textureRef;
+}
+
 float Utils::toRadians(float degrees) { return (degrees * 2.0f * 3.14159f) / 360.0f; }
 
 // 黄金材质 — 环境光、漫反射、镜面反射和光泽
