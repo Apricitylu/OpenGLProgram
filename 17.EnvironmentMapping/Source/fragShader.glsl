@@ -1,17 +1,21 @@
 #version 430
 
-// noperspective in vec2 tc; //禁用OpenGL的透视校正
-in vec2 tc;      // 输入插值过的材质坐标
+layout (binding=0) uniform sampler2D samp;
 
-out vec4 color;
+in vec3 varyingNormal;
+in vec3 varyingVertPos;
+
+out vec4 fragColor;
 
 uniform mat4 mv_matrix;
 uniform mat4 proj_matrix;
+uniform mat4 norm_matrix;
 
-layout (binding=0) uniform sampler2D samp;
+layout (binding = 0) uniform samplerCube tex_map;
 
 
 void main(void)
-{ 
-	color = texture(samp, tc);
+{
+	vec3 r = -reflect(normalize(-varyingVertPos), normalize(varyingNormal));//计算反射向量
+	fragColor = texture(tex_map, r);
 }

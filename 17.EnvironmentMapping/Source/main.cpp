@@ -37,10 +37,10 @@ GLuint skyboxTexture;
 GLuint brickTexture;
 
 // 分配在 display() 函数中使用的变量空间，这样它们就不必在渲染过程中分配
-GLuint mLoc, vLoc, mvLoc, projLoc, tfLoc;
+GLuint mLoc, vLoc, mvLoc, projLoc, tfLoc, nLoc;
 int width, height;
 float aspect, timeFactor;
-glm::mat4 pMat, vMat, mMat, mvMat, tMat, rMat;
+glm::mat4 pMat, vMat, mMat, mvMat, tMat, rMat, invTrMat;
 stack<glm::mat4> mvStack;
 
 Torus myTorus(0.5f, 0.2f, 64);
@@ -198,26 +198,39 @@ void display(GLFWwindow* window, double currentTime) {
     // 获取MV矩阵和投影矩阵的统一变量
     mvLoc = glGetUniformLocation(renderingProgram, "mv_matrix");
     projLoc = glGetUniformLocation(renderingProgram, "proj_matrix");
-
-    glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
+    nLoc = glGetUniformLocation(renderingProgram, "norm_matrix");
 
     mMat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 4.0f));
     mMat *= glm::rotate(glm::mat4(1.0f), (float)currentTime, glm::vec3(0.3f, 1.0f, 0.0f));
     mvMat = vMat * mMat;
-    glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
+    invTrMat = glm::transpose(glm::inverse(mvMat));
 
+    // 法向量变换现在在统一变量中
+    glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
+    glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
+
+    // 激活环面顶点缓冲区
     glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    // 激活环面法向量缓冲区
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(1);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, brickTexture);
+    //glActiveTexture(GL_TEXTURE0);
+    //glBindTexture(GL_TEXTURE_2D, brickTexture);
 
-    glEnable(GL_DEPTH_TEST);
+    // 环面纹理现在是立方体贴图
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
+
+    // 绘制环面的过程未做更改
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_CULL_FACE);
+    glFrontFace(GL_CCW);
     glDepthFunc(GL_LEQUAL);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[5]);
@@ -228,7 +241,7 @@ int main(void) {                            // main()和之前的没有变化
     if (!glfwInit()) { exit(EXIT_FAILURE); }
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    GLFWwindow* window = glfwCreateWindow(600, 600, "Skybox", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(600, 600, "Window", NULL, NULL);
     glfwMakeContextCurrent(window);
     if (glewInit() != GLEW_OK) { exit(EXIT_FAILURE); }
     glfwSwapInterval(1);

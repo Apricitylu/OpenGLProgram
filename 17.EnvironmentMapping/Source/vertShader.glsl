@@ -1,19 +1,20 @@
 #version 430
 
-layout (location=0) in vec3 pos;
-layout (location=1) in vec2 texCoord;
+layout (location = 0) in vec3 position;
+layout (location = 1) in vec3 normal;
 
-layout (binding=0) uniform sampler2D samp;     // 顶点，着色器中未使用
+out vec3 varyingNormal;
+out vec3 varyingVertPos;
 
 uniform mat4 mv_matrix;
 uniform mat4 proj_matrix;
+uniform mat4 norm_matrix;
 
-//noperspective out vec2 tc; //禁用OpenGL的透视校正
-out vec2 tc;        // 纹理坐标输出到光栅着色器用于插值
-
+layout (binding = 0) uniform samplerCube tex_map;
 
 void main(void)
 { 
-    gl_Position = proj_matrix * mv_matrix * vec4(pos, 1.0);
-    tc = texCoord;
+    varyingVertPos = (mv_matrix * vec4(position,1.0)).xyz;
+    varyingNormal = (norm_matrix * vec4(normal,1.0)).xyz;
+    gl_Position = proj_matrix * mv_matrix * vec4(position,1.0);
 }
