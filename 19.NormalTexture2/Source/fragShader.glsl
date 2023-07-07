@@ -7,6 +7,7 @@ in vec3 varyingHalfVector;
 // 与Phong着色相同，但添加此输入顶点属性
 in vec3 originalVertex;
 in vec2 tc;      // 输入插值过的材质坐标
+in vec3 varyingTangent;      // 视觉空间顶点切向量
 
 out vec4 fragColor;
 
@@ -36,13 +37,28 @@ uniform mat4 mv_matrix;
 uniform mat4 proj_matrix;
 uniform mat4 norm_matrix;
 
-layout (binding=0) uniform sampler2D samp;
+layout (binding=0) uniform sampler2D samp;     // 纹理
+layout (binding=1) uniform sampler2D samp2;    // 法线贴图
+
+vec3 calcNewNormal()
+{
+    vec3 normal = normalize(varyingNormal);
+    vec3 tangent = normalize(varyingTangent);
+    tangent = normalize(tangent - dot(tangent, normal) * normal); // 切向量垂直于法向量
+    vec3 bitangent = cross(tangent, normal);
+	mat3 tbn = mat3(tangent, bitangent, normal);       // 用来变换到相机空间的TBN矩阵
+    vec3 retrievedNormal = texture(samp2,tc).xyz;
+    retrievedNormal = retrievedNormal * 2.0 - 1.0;     // 从RGB空间转换
+    vec3 newNormal = tbn * retrievedNormal;
+    newNormal = normalize(newNormal); 
+    return newNormal;
+}
 
 void main(void)
 { 
 	// 正规化光照向量、法向量、视觉向量
 	vec3 L = normalize(varyingLightDir); 
-	vec3 N = normalize(varyingNormal); 
+	vec3 N = calcNewNormal();; 
 	vec3 V = normalize(-varyingVertPos); 
 	vec3 H = normalize(varyingHalfVector); 
 

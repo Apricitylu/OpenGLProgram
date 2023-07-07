@@ -3,12 +3,14 @@
 layout (location=0) in vec3 position;
 layout (location=1) in vec2 texCoord;
 layout (location=2) in vec3 vertNormal;
+layout (location=3) in vec3 vertTangent;
 out vec3 varyingNormal;      // 视觉空间顶点法向量
 out vec3 varyingLightDir;    // 指向光源的向量
 out vec3 varyingVertPos;     // 视觉空间中的顶点位置
 out vec3 varyingHalfVector;  // 角平分线向量 H 作为新增的输
 out vec3 originalVertex;    // 与Phong着色相同，但添加此输出顶点属性
 out vec2 tc;        // 纹理坐标输出到光栅着色器用于插值
+out vec3 varyingTangent;      // 视觉空间顶点切向量
 
 struct PositionalLight
 { 
@@ -40,6 +42,7 @@ void main(void)
     varyingLightDir = light.position - varyingVertPos; 
     varyingNormal = (norm_matrix * vec4(vertNormal,1.0)).xyz; 
     varyingHalfVector = (varyingLightDir + (-varyingVertPos)).xyz; 
+    varyingTangent = (norm_matrix * vec4(vertTangent,1.0)).xyz; 
 
     // 添加原始顶点，传递以进行插值
     originalVertex = position;

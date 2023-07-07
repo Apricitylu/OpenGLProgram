@@ -26,4 +26,5 @@ public:
 	std::vector<glm::vec3> getVertices();
 	std::vector<glm::vec2> getTexCoords();
 	std::vector<glm::vec3> getNormals();
+	std::vector<glm::vec3> getTangents();
 };

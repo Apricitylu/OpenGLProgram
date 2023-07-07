@@ -25,7 +25,7 @@
 using namespace std;
 
 #define numVAOs 1
-#define numVBOs 3
+#define numVBOs 4
 
 float cameraX, cameraY, cameraZ;
 float LocX, LocY, LocZ;
@@ -34,6 +34,7 @@ GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
 
 GLuint TextureID;
+GLuint NormalTextureID;
 
 // ·ÖÅäÔÚ display() º¯ÊıÖĞÊ¹ÓÃµÄ±äÁ¿¿Õ¼ä£¬ÕâÑùËüÃÇ¾Í²»±ØÔÚäÖÈ¾¹ı³ÌÖĞ·ÖÅä
 GLuint mLoc, vLoc, mvLoc, projLoc, tfLoc, nLoc;
@@ -69,10 +70,12 @@ void setupVertices(void) {    // 36¸ö¶¥µã£¬12¸öÈı½ÇĞÎ£¬×é³ÉÁË·ÅÖÃÔÚÔ­µã´¦µÄ2¡Á2¡
     std::vector<glm::vec3> vert = mySphere.getVertices();
     std::vector<glm::vec2> tex = mySphere.getTexCoords();
     std::vector<glm::vec3> norm = mySphere.getNormals();
+    std::vector<glm::vec3> tang = mySphere.getTangents();
 
     std::vector<float> pvalues;     // ¶¥µãÎ»ÖÃ
     std::vector<float> tvalues;     // ÎÆÀí×ø±ê
     std::vector<float> nvalues;     // ·¨ÏòÁ¿
+    std::vector<float> tavalues;    // ÇĞÏòÁ¿
 
     int numIndices = mySphere.getNumIndices();
     for (int i = 0; i < numIndices; i++) {
@@ -86,11 +89,15 @@ void setupVertices(void) {    // 36¸ö¶¥µã£¬12¸öÈı½ÇĞÎ£¬×é³ÉÁË·ÅÖÃÔÚÔ­µã´¦µÄ2¡Á2¡
         nvalues.push_back((norm[ind[i]]).x);
         nvalues.push_back((norm[ind[i]]).y);
         nvalues.push_back((norm[ind[i]]).z);
+
+        tavalues.push_back((tang[ind[i]]).x);
+        tavalues.push_back((tang[ind[i]]).y);
+        tavalues.push_back((tang[ind[i]]).z);
     }
 
     glGenVertexArrays(1, vao);
     glBindVertexArray(vao[0]);
-    glGenBuffers(3, vbo);
+    glGenBuffers(numVBOs, vbo);
 
     // °Ñ¶¥µã·ÅÈë»º³åÇø #0
     glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
@@ -103,6 +110,10 @@ void setupVertices(void) {    // 36¸ö¶¥µã£¬12¸öÈı½ÇĞÎ£¬×é³ÉÁË·ÅÖÃÔÚÔ­µã´¦µÄ2¡Á2¡
     // °Ñ·¨ÏòÁ¿·ÅÈë»º³åÇø #2
     glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
     glBufferData(GL_ARRAY_BUFFER, nvalues.size() * 4, &nvalues[0], GL_STATIC_DRAW);
+
+    // °ÑÇĞÏòÁ¿·ÅÈë»º³åÇø #3
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
+    glBufferData(GL_ARRAY_BUFFER, tavalues.size() * 4, &tavalues[0], GL_STATIC_DRAW);
 }
 
 void init(GLFWwindow* window) {
@@ -113,6 +124,7 @@ void init(GLFWwindow* window) {
     LocX = 0.0f; LocY = 0.0f; LocZ = 0.0f; // ÑØYÖáÏÂÒÆÒÔÕ¹Ê¾Í¸ÊÓ
 
     TextureID = Utils::loadTexture("Sphere.jpg");
+    NormalTextureID = Utils::loadTexture("Normal.jpg");
 
     setupVertices();
 }
@@ -196,8 +208,15 @@ void display(GLFWwindow* window, double currentTime) {
     glVertexAttribPointer(2, 3, GL_FLOAT, false, 0, 0);
     glEnableVertexAttribArray(2);
 
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
+    glVertexAttribPointer(3, 3, GL_FLOAT, false, 0, 0);
+    glEnableVertexAttribArray(3);
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, TextureID);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, NormalTextureID);
 
     // µ÷ÕûOpenGLÉèÖÃ£¬»æÖÆÄ£ĞÍ
     glEnable(GL_DEPTH_TEST);

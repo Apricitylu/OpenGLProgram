@@ -26,6 +26,7 @@ void Sphere::init(int prec) {
     for (int i = 0; i < numVertices; i++) { texCoords.push_back(glm::vec2()); }
     for (int i = 0; i < numVertices; i++) { normals.push_back(glm::vec3()); }
     for (int i = 0; i < numIndices; i++) { indices.push_back(0); }
+    for (int i = 0; i < numVertices; i++) { tangents.push_back(glm::vec3()); }
 
     // 计算三角形顶点
     for (int i = 0; i <= prec; i++) {//球体中的每个水平切片i
@@ -68,3 +69,4 @@ std::vector<int> Sphere::getIndices() { return indices; }
 std::vector<glm::vec3> Sphere::getVertices() { return vertices; }
 std::vector<glm::vec2> Sphere::getTexCoords() { return texCoords; }
 std::vector<glm::vec3> Sphere::getNormals() { return normals; }
+std::vector<glm::vec3> Sphere::getTangents() { return tangents; }
