@@ -48,6 +48,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "18.NormalTexture1", "18.Nor
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "19.NormalTexture2", "19.NormalTexture2\19.NormalTexture2.vcxproj", "{8D110CCF-0262-4E58-9822-2B6D316D7698}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "20.Tessellation", "20.Tessellation\20.Tessellation.vcxproj", "{9090302F-2023-47B1-8BBF-80F31A984084}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -224,6 +226,14 @@ Global
 		{8D110CCF-0262-4E58-9822-2B6D316D7698}.Release|x64.Build.0 = Release|x64
 		{8D110CCF-0262-4E58-9822-2B6D316D7698}.Release|x86.ActiveCfg = Release|Win32
 		{8D110CCF-0262-4E58-9822-2B6D316D7698}.Release|x86.Build.0 = Release|Win32
+		{9090302F-2023-47B1-8BBF-80F31A984084}.Debug|x64.ActiveCfg = Debug|x64
+		{9090302F-2023-47B1-8BBF-80F31A984084}.Debug|x64.Build.0 = Debug|x64
+		{9090302F-2023-47B1-8BBF-80F31A984084}.Debug|x86.ActiveCfg = Debug|Win32
+		{9090302F-2023-47B1-8BBF-80F31A984084}.Debug|x86.Build.0 = Debug|Win32
+		{9090302F-2023-47B1-8BBF-80F31A984084}.Release|x64.ActiveCfg = Release|x64
+		{9090302F-2023-47B1-8BBF-80F31A984084}.Release|x64.Build.0 = Release|x64
+		{9090302F-2023-47B1-8BBF-80F31A984084}.Release|x86.ActiveCfg = Release|Win32
+		{9090302F-2023-47B1-8BBF-80F31A984084}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

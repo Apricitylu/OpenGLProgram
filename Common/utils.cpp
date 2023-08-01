@@ -114,6 +114,87 @@ GLuint Utils::createShaderProgram(const char* vp, const char* fp)
 	return vfProgram;
 }
 
+GLuint Utils::createShaderProgram(const char* vp, const char* tCS, const char* tES, const char* fp)
+{
+	string vertShaderStr = readShaderSource(vp);
+	string tcShaderStr = readShaderSource(tCS);
+	string teShaderStr = readShaderSource(tES);
+	string fragShaderStr = readShaderSource(fp);
+
+	const char* vertShaderSrc = vertShaderStr.c_str();
+	const char* tcShaderSrc = tcShaderStr.c_str();
+	const char* teShaderSrc = teShaderStr.c_str();
+	const char* fragShaderSrc = fragShaderStr.c_str();
+
+	GLuint vShader = glCreateShader(GL_VERTEX_SHADER);
+	GLuint tcShader = glCreateShader(GL_TESS_CONTROL_SHADER);
+	GLuint teShader = glCreateShader(GL_TESS_EVALUATION_SHADER);
+	GLuint fShader = glCreateShader(GL_FRAGMENT_SHADER);
+
+	glShaderSource(vShader, 1, &vertShaderSrc, NULL);
+	glShaderSource(tcShader, 1, &tcShaderSrc, NULL);
+	glShaderSource(teShader, 1, &teShaderSrc, NULL);
+	glShaderSource(fShader, 1, &fragShaderSrc, NULL);
+
+	glCompileShader(vShader);
+	checkOpenGLError();
+	GLint vertCompiled;
+	glGetShaderiv(vShader, GL_COMPILE_STATUS, &vertCompiled);
+	if (vertCompiled != 1)
+	{
+		cout << "vShader complication failed" << endl;
+		printShaderLog(vShader);
+	}
+
+	glCompileShader(tcShader);
+	checkOpenGLError();
+	GLint tcCompiled;
+	glGetShaderiv(tcShader, GL_COMPILE_STATUS, &tcCompiled);
+	if (tcCompiled != 1)
+	{
+		cout << "tcShader complication failed" << endl;
+		printShaderLog(tcShader);
+	}
+
+	glCompileShader(teShader);
+	checkOpenGLError();
+	GLint teCompiled;
+	glGetShaderiv(teShader, GL_COMPILE_STATUS, &teCompiled);
+	if (teCompiled != 1)
+	{
+		cout << "teShader complication failed" << endl;
+		printShaderLog(teShader);
+	}
+
+	glCompileShader(fShader);
+	checkOpenGLError();
+	GLint fragCompiled;
+	glGetShaderiv(fShader, GL_COMPILE_STATUS, &fragCompiled);
+	if (fragCompiled != 1)
+	{
+		cout << "fShader complication failed" << endl;
+		printShaderLog(fShader);
+	}
+
+	GLuint vtfprogram = glCreateProgram();
+	glAttachShader(vtfprogram, vShader);
+	glAttachShader(vtfprogram, tcShader);
+	glAttachShader(vtfprogram, teShader);
+	glAttachShader(vtfprogram, fShader);
+
+	glLinkProgram(vtfprogram);
+	checkOpenGLError();
+	GLint linked;
+	glGetProgramiv(vtfprogram, GL_LINK_STATUS, &linked);
+	if (linked != 1)
+	{
+		cout << "linking failed" << endl;
+		printProgramLog(vtfprogram);
+	}
+
+	return vtfprogram;
+}
+
 GLuint Utils::loadTexture(const char* texImagePath)
 {
 	GLuint textureID;
