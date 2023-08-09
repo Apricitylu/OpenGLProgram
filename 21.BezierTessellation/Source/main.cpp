@@ -75,7 +75,7 @@ void display(GLFWwindow* window, double currentTime)
 
 	// 构建视图矩阵、模型矩阵和视图-模型矩阵
 	vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
-	mMat = glm::translate(glm::mat4(1.0f), glm::vec3(cubeLocX, cubeLocY, cubeLocZ)) * glm::rotate(glm::mat4(1.0f), 0.05f * (float)currentTime, glm::vec3(0.0f, 1.0f, 0.0f));
+	mMat = glm::translate(glm::mat4(1.0f), glm::vec3(cubeLocX, cubeLocY, cubeLocZ)) * glm::rotate(glm::mat4(1.0f), 0.15f * (float)currentTime, glm::vec3(0.0f, 1.0f, 0.0f));
 	mvpMat = pMat * vMat * mMat;
 
 	// 将透视矩阵和MV矩阵复制给相应的统一变量
