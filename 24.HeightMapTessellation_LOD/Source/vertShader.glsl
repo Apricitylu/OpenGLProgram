@@ -16,8 +16,7 @@ void main(void)
 	int y = gl_InstanceID / 64;
 
 	// 纹理坐标被分配进64个补丁中，并归一化到[0..1]。翻转Y轴坐标
-	tc = vec2((x + patchTexCoords[gl_VertexID].x) / 64.0, (63 - y + patchTexCoords[gl_VertexID].y) / 64.0);	
-	//此案例中patchTexCoords并没起作用，可以等同于tc = vec2(x / 64.0, (63 - y) / 64.0);	
+	tc = vec2((x + patchTexCoords[gl_VertexID].x) / 64.0, (63 - y + patchTexCoords[gl_VertexID].y) / 64.0);
 
 	// 顶点位置和纹理坐标相同，只是它的取值范围从-0.5到+0.5
 	gl_Position = vec4(tc.x - 0.5, 0.0, (1.0 - tc.y) - 0.5, 1.0);         // 并且将Y轴坐标翻转回来
