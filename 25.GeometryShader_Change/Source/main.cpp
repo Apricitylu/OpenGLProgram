@@ -105,9 +105,10 @@ void setupVertices(void) {
 
 void init(GLFWwindow* window) {
     const char* vp = "Source/vertShader.glsl";
+    const char* gp = "Source/geomShader.glsl";
     const char* fp = "Source/fragShader.glsl";
-    renderingProgram = Utils::createShaderProgram(vp, fp);
-    cameraX = 0.0f; cameraY = 0.0f; cameraZ = 2.0f;
+    renderingProgram = Utils::createShaderProgram(vp, gp, fp);
+    cameraX = 0.0f; cameraY = 0.0f; cameraZ = 3.0f;
     LocX = 0.0f; LocY = 0.0f; LocZ = 0.0f; // 沿Y轴下移以展示透视
     setupVertices();
 }

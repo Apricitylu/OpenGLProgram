@@ -1,8 +1,8 @@
 #version 430
-in vec3 varyingNormal;
-in vec3 varyingLightDir;
-in vec3 varyingVertPos;
-in vec3 varyingHalfVector;
+in vec3 varyingNormalG;
+in vec3 varyingLightDirG;
+in vec3 varyingVertPosG;
+in vec3 varyingHalfVectorG;
 out vec4 fragColor;
 
 // 与顶点着色器相同的统一变量
@@ -34,10 +34,10 @@ uniform mat4 norm_matrix;
 void main(void)
 { 
 	// 正规化光照向量、法向量、视觉向量
-	vec3 L = normalize(varyingLightDir); 
-	vec3 N = normalize(varyingNormal); 
-	vec3 V = normalize(-varyingVertPos); 
-	vec3 H = normalize(varyingHalfVector); 
+	vec3 L = normalize(varyingLightDirG); 
+	vec3 N = normalize(varyingNormalG); 
+	vec3 V = normalize(-varyingVertPosG); 
+	vec3 H = normalize(varyingHalfVectorG); 
 
 	// 计算光照与平面法向量间的角度
 	float cosTheta = dot(L,N);

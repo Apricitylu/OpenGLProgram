@@ -247,6 +247,75 @@ GLuint Utils::loadCubeMap(const char* mapDir) {
 	return textureRef;
 }
 
+GLuint Utils::createShaderProgram(const char* vp, const char* gp, const char* fp)
+{
+	GLint vertCompiled;
+	GLint geomCompiled;
+	GLint fragCompiled;
+	GLint linked;
+
+	//所有顶点着色器的主要目标都是将顶点发送给管线
+	string vertShaderStr = readShaderSource(vp);
+	string geomShaderStr = readShaderSource(gp);
+	string fragShaderStr = readShaderSource(fp);
+
+	const char* vshaderSource = vertShaderStr.c_str();
+	const char* gshaderSource = geomShaderStr.c_str();
+	const char* fshaderSource = fragShaderStr.c_str();
+
+	GLuint vShader = glCreateShader(GL_VERTEX_SHADER);
+	GLuint gShader = glCreateShader(GL_GEOMETRY_SHADER);
+	GLuint fShader = glCreateShader(GL_FRAGMENT_SHADER);
+
+	glShaderSource(vShader, 1, &vshaderSource, NULL);
+	glShaderSource(gShader, 1, &gshaderSource, NULL);
+	glShaderSource(fShader, 1, &fshaderSource, NULL);
+
+	glCompileShader(vShader);
+	checkOpenGLError();
+	glGetShaderiv(vShader, GL_COMPILE_STATUS, &vertCompiled);
+	if (vertCompiled != 1)
+	{
+		cout << "vextex complication failed" << endl;
+		printShaderLog(vShader);
+	}
+
+	glCompileShader(gShader);
+	checkOpenGLError();
+	glGetShaderiv(gShader, GL_COMPILE_STATUS, &geomCompiled);
+	if (geomCompiled != 1)
+	{
+		cout << "geometry complication failed" << endl;
+		printShaderLog(gShader);
+	}
+
+	glCompileShader(fShader);
+	checkOpenGLError();
+	glGetShaderiv(fShader, GL_COMPILE_STATUS, &fragCompiled);
+	if (fragCompiled != 1)
+	{
+		cout << "fragment complication failed" << endl;
+		printShaderLog(fShader);
+	}
+
+	GLuint vfProgram = glCreateProgram();
+
+	glAttachShader(vfProgram, vShader);
+	glAttachShader(vfProgram, gShader);
+	glAttachShader(vfProgram, fShader);
+
+	glLinkProgram(vfProgram);
+	checkOpenGLError();
+	glGetProgramiv(vfProgram, GL_LINK_STATUS, &linked);
+	if (linked != 1)
+	{
+		cout << "linking failed" << endl;
+		printProgramLog(vfProgram);
+	}
+
+	return vfProgram;
+}
+
 float Utils::toRadians(float degrees) { return (degrees * 2.0f * 3.14159f) / 360.0f; }
 
 // 黄金材质 — 环境光、漫反射、镜面反射和光泽

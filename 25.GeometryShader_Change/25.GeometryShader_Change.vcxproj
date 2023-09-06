@@ -149,6 +149,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Source\fragShader.glsl" />
+    <None Include="Source\geomShader.glsl" />
     <None Include="Source\vertShader.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
