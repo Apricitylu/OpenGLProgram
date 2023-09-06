@@ -30,6 +30,7 @@ uniform Material material;
 uniform mat4 mv_matrix;
 uniform mat4 proj_matrix;
 uniform mat4 norm_matrix;
+uniform int enableLighting;
 
 void main(void)
 { 
@@ -50,5 +51,12 @@ void main(void)
 	vec3 diffuse = light.diffuse.xyz * material.diffuse.xyz * max(cosTheta,0.0); 
 	vec3 specular = light.specular.xyz * material.specular.xyz * pow(max(cosPhi,0.0), material.shininess*3.0); // 最后乘以3.0作为改善镜面高光的微调
 
-	fragColor = vec4((ambient + diffuse + specular), 1.0);
+	if (enableLighting == 1)
+	{
+		fragColor = vec4((ambient + diffuse + specular), 1.0);	// 当渲染前向表面时，使用正常的光照计算
+	}
+	else
+	{
+		fragColor = globalAmbient * material.ambient + light.ambient * material.ambient;	// 当渲染后向表面时，只启用环境光照组件
+	}
 }

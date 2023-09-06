@@ -34,7 +34,7 @@ GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
 
 // 为display() 函数分配变量
-GLuint mvLoc, projLoc, nLoc;
+GLuint mvLoc, projLoc, nLoc, lLoc;
 
 int width, height;
 float aspect;
@@ -152,6 +152,7 @@ void display(GLFWwindow* window, double currentTime) {
     mvLoc = glGetUniformLocation(renderingProgram, "mv_matrix");
     projLoc = glGetUniformLocation(renderingProgram, "proj_matrix");
     nLoc = glGetUniformLocation(renderingProgram, "norm_matrix");
+    lLoc = glGetUniformLocation(renderingProgram, "enableLighting");
 
     // 构建透视矩阵
     glfwGetFramebufferSize(window, &width, &height);
@@ -189,12 +190,22 @@ void display(GLFWwindow* window, double currentTime) {
     glEnableVertexAttribArray(1);
 
     glEnable(GL_CULL_FACE);
-    glFrontFace(GL_CCW);
+    //glFrontFace(GL_CCW);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[3]);
+
+    // 绘制前向三角形——启用光照
+    glUniform1i(lLoc, 1);     // 用来启用、禁用漫反射、镜面光组件的统一变量的位置
+    glFrontFace(GL_CCW);
     glDrawElements(GL_TRIANGLES, myTorus.getNumIndices(), GL_UNSIGNED_INT, 0);
+
+    // 绘制后向三角形——禁用光照
+    glUniform1i(lLoc, 0);
+    glFrontFace(GL_CW);
+    glDrawElements(GL_TRIANGLES, myTorus.getNumIndices(), GL_UNSIGNED_INT, 0);
+
 }
 
 int main(void) {                            // main()和之前的没有变化
