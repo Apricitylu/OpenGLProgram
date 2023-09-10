@@ -39,16 +39,18 @@ uniform mat4 norm_matrix;   // 用来变换法向量
 
 void main (void)
 {
-    vec4 triangleNormal = vec4((varyingNormal[0] + varyingNormal[1] + varyingNormal[2]) / 3.0, 1.0);
-    // 沿着法向量移动顶点，并将其他顶点属性原样传递
-    for (int i=0; i<3; i++)
-    { 
-        gl_Position = gl_in[i].gl_Position + normalize(triangleNormal) * 0.4;
-        varyingNormalG = varyingNormal[i];
-        varyingLightDirG = varyingLightDir[i];
-        varyingHalfVectorG = varyingHalfVector[i];
-        varyingVertPosG = varyingVertPos[i];
-        EmitVertex();
+    //所有顶点，除了每3个图元中的第一个图元的顶点被忽略之外，都被传递。
+    if (mod(gl_PrimitiveIDIn, 3) != 0)
+    {
+        for (int i=0; i<3; i++)
+        { 
+            gl_Position = gl_in[i].gl_Position + 0.000001;//不加个值没有效果？
+            varyingNormalG = varyingNormal[i];
+            varyingLightDirG = varyingLightDir[i];
+            varyingHalfVectorG = varyingHalfVector[i];
+            varyingVertPosG = varyingVertPos[i];
+            EmitVertex();
+        }
     }
     EndPrimitive();
 }
