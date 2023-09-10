@@ -62,6 +62,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "25.GeometryShader_Change", 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "26.GeometryShader_Delete", "26.GeometryShader_Delete\26.GeometryShader_Delete.vcxproj", "{BB130851-4851-4E81-9840-A9AC3E801504}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "27.GeometryShader_Add", "27.GeometryShader_Add\27.GeometryShader_Add.vcxproj", "{4B77531E-E858-4FE9-A29E-37419A8A2536}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -294,6 +296,14 @@ Global
 		{BB130851-4851-4E81-9840-A9AC3E801504}.Release|x64.Build.0 = Release|x64
 		{BB130851-4851-4E81-9840-A9AC3E801504}.Release|x86.ActiveCfg = Release|Win32
 		{BB130851-4851-4E81-9840-A9AC3E801504}.Release|x86.Build.0 = Release|Win32
+		{4B77531E-E858-4FE9-A29E-37419A8A2536}.Debug|x64.ActiveCfg = Debug|x64
+		{4B77531E-E858-4FE9-A29E-37419A8A2536}.Debug|x64.Build.0 = Debug|x64
+		{4B77531E-E858-4FE9-A29E-37419A8A2536}.Debug|x86.ActiveCfg = Debug|Win32
+		{4B77531E-E858-4FE9-A29E-37419A8A2536}.Debug|x86.Build.0 = Debug|Win32
+		{4B77531E-E858-4FE9-A29E-37419A8A2536}.Release|x64.ActiveCfg = Release|x64
+		{4B77531E-E858-4FE9-A29E-37419A8A2536}.Release|x64.Build.0 = Release|x64
+		{4B77531E-E858-4FE9-A29E-37419A8A2536}.Release|x86.ActiveCfg = Release|Win32
+		{4B77531E-E858-4FE9-A29E-37419A8A2536}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
