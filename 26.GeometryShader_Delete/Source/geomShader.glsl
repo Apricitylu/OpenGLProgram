@@ -44,7 +44,7 @@ void main (void)
     {
         for (int i=0; i<3; i++)
         { 
-            gl_Position = gl_in[i].gl_Position + 0.000001;//不加个值没有效果？
+            gl_Position = proj_matrix * vec4(varyingVertPos[i], 1.0);
             varyingNormalG = varyingNormal[i];
             varyingLightDirG = varyingLightDir[i];
             varyingHalfVectorG = varyingHalfVector[i];
