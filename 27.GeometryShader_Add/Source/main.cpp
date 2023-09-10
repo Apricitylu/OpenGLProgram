@@ -61,7 +61,7 @@ float* matDif = Utils::goldDiffuse();
 float* matSpe = Utils::goldSpecular();
 float matShi = Utils::goldShininess();
 
-Torus myTorus(0.5f, 0.2f, 64);
+Torus myTorus(0.5f, 0.2f, 32);
 
 void setupVertices(void) {
     std::vector<int> ind = myTorus.getIndices();
@@ -202,9 +202,9 @@ void display(GLFWwindow* window, double currentTime) {
     glDrawElements(GL_TRIANGLES, myTorus.getNumIndices(), GL_UNSIGNED_INT, 0);
 
     // 绘制后向三角形——禁用光照
-    glUniform1i(lLoc, 0);
-    glFrontFace(GL_CW);
-    glDrawElements(GL_TRIANGLES, myTorus.getNumIndices(), GL_UNSIGNED_INT, 0);
+    //glUniform1i(lLoc, 0);
+    //glFrontFace(GL_CW);
+    //glDrawElements(GL_TRIANGLES, myTorus.getNumIndices(), GL_UNSIGNED_INT, 0);
 
 }
 
