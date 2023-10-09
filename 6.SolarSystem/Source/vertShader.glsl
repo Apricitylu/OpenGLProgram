@@ -6,6 +6,7 @@ uniform mat4 mv_matrix;
 uniform mat4 proj_matrix;
 
 out vec4 varyingColor;
+out vec3 vertEyeSpacePos;
 
 
 void main(void)
@@ -13,4 +14,6 @@ void main(void)
     gl_Position = proj_matrix * mv_matrix * vec4(position, 1.0);
 
     varyingColor = vec4(position, 1.0) * 0.5 + vec4(0.5, 0.5, 0.5, 0.5);
+
+    vertEyeSpacePos = (mv_matrix * vec4(position, 1.0)).xyz;
 }
