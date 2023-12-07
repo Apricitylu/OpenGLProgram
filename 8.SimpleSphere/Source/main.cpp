@@ -25,7 +25,7 @@
 using namespace std;
 
 #define numVAOs 1
-#define numVBOs 2
+#define numVBOs 3
 
 float cameraX, cameraY, cameraZ;
 float LocX, LocY, LocZ;

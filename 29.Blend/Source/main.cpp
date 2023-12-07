@@ -20,12 +20,13 @@
 
 #include "../../Common/utils.h"
 #include "../../Common/Torus.h"
+#include "../../Common/Sphere.h"
 
 
 using namespace std;
 
 #define numVAOs 1
-#define numVBOs 6
+#define numVBOs 7
 
 float cameraX, cameraY, cameraZ;
 float LocX, LocY, LocZ;
@@ -63,6 +64,7 @@ float* matSpe = Utils::goldSpecular();
 float matShi = Utils::goldShininess();
 
 Torus myTorus(0.5f, 0.2f, 64);
+Sphere mySphere(48);
 
 void setupVertices(void) {
     std::vector<int> ind = myTorus.getIndices();
@@ -103,29 +105,40 @@ void setupVertices(void) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[3]);  // 索引
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, ind.size() * 4, &ind[0], GL_STATIC_DRAW);
 
-    float pyramidPositions[54] = {
-     -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-     1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-     1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-     -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-     -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f,
-     1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f
-    };
+    ind = mySphere.getIndices();
+    vert = mySphere.getVertices();
+    tex = mySphere.getTexCoords();
+    norm = mySphere.getNormals();
 
-    float pyramidNormals[54] = {
-     -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-     1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-     1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-     -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-     -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f,
-     1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f
-    };
+    pvalues.clear();
+    tvalues.clear();
+    nvalues.clear();
 
+    int numIndices = mySphere.getNumIndices();
+    for (int i = 0; i < numIndices; i++) {
+        pvalues.push_back((vert[ind[i]]).x);
+        pvalues.push_back((vert[ind[i]]).y);
+        pvalues.push_back((vert[ind[i]]).z);
+
+        tvalues.push_back((tex[ind[i]]).s);
+        tvalues.push_back((tex[ind[i]]).t);
+
+        nvalues.push_back((norm[ind[i]]).x);
+        nvalues.push_back((norm[ind[i]]).y);
+        nvalues.push_back((norm[ind[i]]).z);
+    }
+
+    // 把顶点放入缓冲区 #0
     glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(pyramidPositions), pyramidPositions, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, pvalues.size() * 4, &pvalues[0], GL_STATIC_DRAW);
 
+    // 把纹理坐标放入缓冲区 #1
     glBindBuffer(GL_ARRAY_BUFFER, vbo[5]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(pyramidNormals), pyramidNormals, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, tvalues.size() * 4, &tvalues[0], GL_STATIC_DRAW);
+
+    // 把法向量放入缓冲区 #2
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[6]);
+    glBufferData(GL_ARRAY_BUFFER, nvalues.size() * 4, &nvalues[0], GL_STATIC_DRAW);
 }
 
 void init(GLFWwindow* window) {
@@ -231,7 +244,7 @@ void display(GLFWwindow* window, double currentTime) {
 
     mMat = glm::translate(glm::mat4(1.0f), glm::vec3(pyramidLocX, pyramidLocY, pyramidLocZ)); // 太阳位置
     mMat *= glm::rotate(glm::mat4(1.0f), 0.3f, glm::vec3(1.0f, 1.0f, 0.0f)); // 太阳自转
-    mMat *= glm::scale(glm::mat4(1.0f), glm::vec3(0.5f, 0.5f, 0.5f));
+    mMat *= glm::scale(glm::mat4(1.0f), glm::vec3(0.3f, 0.3f, 0.3f));
     mvMat = vMat * mMat;
 
     glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
@@ -239,7 +252,7 @@ void display(GLFWwindow* window, double currentTime) {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[5]);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[6]);
     glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
     glEnableVertexAttribArray(1);
 
@@ -255,11 +268,11 @@ void display(GLFWwindow* window, double currentTime) {
     glCullFace(GL_FRONT);         // 先渲染金字塔的背面
     glProgramUniform1f(renderingProgram, aLoc, 0.3f);        // 背面非常透明
     glProgramUniform1f(renderingProgram, fLoc, -1.0f);       // 翻转背面的法向量
-    glDrawArrays(GL_TRIANGLES, 0, 18);
+    glDrawArrays(GL_TRIANGLES, 0, mySphere.getNumIndices());
     glCullFace(GL_BACK);                                     // 然后渲染金字塔的正面
     glProgramUniform1f(renderingProgram, aLoc, 0.7f);        // 正面略微透明
     glProgramUniform1f(renderingProgram, fLoc, 1.0f);        // 正面不需要翻转法向量
-    glDrawArrays(GL_TRIANGLES, 0, 18);
+    glDrawArrays(GL_TRIANGLES, 0, mySphere.getNumIndices());
 
     glDisable(GL_BLEND);
 }
