@@ -70,6 +70,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "29.Blend", "29.Blend\29.Ble
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "30.ClipPanel", "30.ClipPanel\30.ClipPanel.vcxproj", "{E89E6975-E877-44BC-998F-165C0FB42F11}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "31.Texture3D", "31.Texture3D\31.Texture3D.vcxproj", "{5772AA07-8E4D-4D8A-8D6D-BB03233719BC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -334,6 +336,14 @@ Global
 		{E89E6975-E877-44BC-998F-165C0FB42F11}.Release|x64.Build.0 = Release|x64
 		{E89E6975-E877-44BC-998F-165C0FB42F11}.Release|x86.ActiveCfg = Release|Win32
 		{E89E6975-E877-44BC-998F-165C0FB42F11}.Release|x86.Build.0 = Release|Win32
+		{5772AA07-8E4D-4D8A-8D6D-BB03233719BC}.Debug|x64.ActiveCfg = Debug|x64
+		{5772AA07-8E4D-4D8A-8D6D-BB03233719BC}.Debug|x64.Build.0 = Debug|x64
+		{5772AA07-8E4D-4D8A-8D6D-BB03233719BC}.Debug|x86.ActiveCfg = Debug|Win32
+		{5772AA07-8E4D-4D8A-8D6D-BB03233719BC}.Debug|x86.Build.0 = Debug|Win32
+		{5772AA07-8E4D-4D8A-8D6D-BB03233719BC}.Release|x64.ActiveCfg = Release|x64
+		{5772AA07-8E4D-4D8A-8D6D-BB03233719BC}.Release|x64.Build.0 = Release|x64
+		{5772AA07-8E4D-4D8A-8D6D-BB03233719BC}.Release|x86.ActiveCfg = Release|Win32
+		{5772AA07-8E4D-4D8A-8D6D-BB03233719BC}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
