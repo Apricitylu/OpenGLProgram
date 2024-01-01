@@ -13,6 +13,7 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <random>
 #include <glm\glm.hpp>
 #include <glm\gtc\type_ptr.hpp>
 #include <glm\gtc\matrix_transform.hpp>
@@ -65,10 +66,36 @@ void setupVertices(void) {    // 36¸ö¶¥µã£¬12¸öÈı½ÇĞÎ£¬×é³ÉÁË·ÅÖÃÔÚÔ­µã´¦µÄ2¡Á2¡
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions), vertexPositions, GL_STATIC_DRAW);
 }
 
+double smoothNoise(double x1, double y1, double z1) 
+{
+    // x1¡¢y1ºÍz1µÄĞ¡Êı²¿·Ö£¨¶ÔÓÚµ±Ç°ÎÆËØ£¬´Óµ±Ç°¿éµ½ÏÂÒ»¸ö¿éµÄ°Ù·Ö±È£©
+    double fractX = x1 - (int)x1;
+    double fractY = y1 - (int)y1;
+    double fractZ = z1 - (int)z1;
+
+    // ÔÚX¡¢YºÍZ·½ÏòÉÏµÄÏàÁÚÏñËØµÄË÷Òı
+    int x2 = ((int)x1 + noiseWidth + 1) % noiseWidth;
+    int y2 = ((int)y1 + noiseHeight + 1) % noiseHeight;
+    int z2 = ((int)z1 + noiseDepth + 1) % noiseDepth;
+
+    // Í¨¹ı°´ÕÕ3¸öÖá·½Ïò²åÖµ»Ò¶È£¬Æ½»¬ÔëÉù
+    double value = 0.0;
+    value += (1 - fractX) * (1 - fractY) * (1 - fractZ) * noise[(int)x1][(int)y1][(int)z1];
+    value += (1 - fractX) * fractY * (1 - fractZ) * noise[(int)x1][(int)y2][(int)z1];
+    value += fractX * (1 - fractY) * (1 - fractZ) * noise[(int)x2][(int)y1][(int)z1];
+    value += fractX * fractY * (1 - fractZ) * noise[(int)x2][(int)y2][(int)z1];
+
+    value += (1 - fractX) * (1 - fractY) * fractZ * noise[(int)x1][(int)y1][(int)z2];
+    value += (1 - fractX) * fractY * fractZ * noise[(int)x1][(int)y2][(int)z2];
+    value += fractX * (1 - fractY) * fractZ * noise[(int)x2][(int)y1][(int)z2];
+    value += fractX * fractY * fractZ * noise[(int)x2][(int)y2][(int)z2];
+    return value;
+}
+
 // °´ÕÕÓÉgenerate3Dpattern()¹¹½¨µÄÍ¼°¸£¬ÓÃÀ¶É«¡¢»ÆÉ«µÄRGBÖµÀ´Ìî³ä×Ö½ÚÊı×é
 void fillDataArray(GLubyte data[])
 {
-    int zoom = 32;      // Ëõ·ÅÒò×Ó
+    double zoom = 32.0;      // Ëõ·ÅÒò×Ó
     int index = 0;
     for (int i = 0; i < noiseWidth; i++) {
         for (int j = 0; j < noiseHeight; j++) {
@@ -80,9 +107,16 @@ void fillDataArray(GLubyte data[])
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 3] = (GLubyte)255;
                 */
 
+                /*
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 0] = (GLubyte)(noise[i / zoom][j / zoom][k / zoom] * 255);
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 1] = (GLubyte)(noise[i / zoom][j / zoom][k / zoom] * 255);
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 2] = (GLubyte)(noise[i / zoom][j / zoom][k / zoom] * 255);
+                data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 3] = (GLubyte)255;
+                */
+
+                data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 0] = (GLubyte)(smoothNoise(i / zoom, j / zoom, k / zoom) * 255);
+                data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 1] = (GLubyte)(smoothNoise(i / zoom, j / zoom, k / zoom) * 255);
+                data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 2] = (GLubyte)(smoothNoise(i / zoom, j / zoom, k / zoom) * 255);
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 3] = (GLubyte)255;
             }
         }
