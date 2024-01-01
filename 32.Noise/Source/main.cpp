@@ -36,10 +36,10 @@ int width, height;
 float aspect, timeFactor;
 glm::mat4 pMat, vMat, mMat, mvMat, tMat, rMat;
 
-const int texHeight = 50;
-const int texWidth = 50;
-const int texDepth = 50;
-int tex3Dpattern[texWidth][texHeight][texDepth];
+const int noiseWidth = 256;
+const int noiseHeight = 256;
+const int noiseDepth = 256;
+double noise[noiseWidth][noiseHeight][noiseDepth];
 int stripeTexture;
 
 void setupVertices(void) {    // 36¸ö¶¥µã£¬12¸öÈı½ÇĞÎ£¬×é³ÉÁË·ÅÖÃÔÚÔ­µã´¦µÄ2¡Á2¡Á2Á¢·½Ìå
@@ -66,56 +66,28 @@ void setupVertices(void) {    // 36¸ö¶¥µã£¬12¸öÈı½ÇĞÎ£¬×é³ÉÁË·ÅÖÃÔÚÔ­µã´¦µÄ2¡Á2¡
 }
 
 // °´ÕÕÓÉgenerate3Dpattern()¹¹½¨µÄÍ¼°¸£¬ÓÃÀ¶É«¡¢»ÆÉ«µÄRGBÖµÀ´Ìî³ä×Ö½ÚÊı×é
-void fillDataArray(GLubyte data[]) 
+void fillDataArray(GLubyte data[])
 {
     int index = 0;
-    for (int i = 0; i < texWidth; i++) 
-    {
-        for (int j = 0; j < texHeight; j++) 
-        {
-            for (int k = 0; k < texDepth; k++) 
-            {
-                if (tex3Dpattern[i][j][k] == 1) 
-                {
-                    // »ÆÉ«
-                    data[index++] = (GLubyte)255; // red
-                    data[index++] = (GLubyte)255; // green
-                    data[index++] = (GLubyte)0;   // blue
-                    data[index++] = (GLubyte)255; // alpha
-                }
-                else {
-                    // À¶É«
-                    data[index++] = (GLubyte)0; // red
-                    data[index++] = (GLubyte)0; // green
-                    data[index++] = (GLubyte)255;   // blue
-                    data[index++] = (GLubyte)255; // alpha
-                }
+    for (int i = 0; i < noiseWidth; i++) {
+        for (int j = 0; j < noiseHeight; j++) {
+            for (int k = 0; k < noiseDepth; k++) {
+                data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 0] = (GLubyte)(noise[i][j][k] * 255);
+                data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 1] = (GLubyte)(noise[i][j][k] * 255);
+                data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 2] = (GLubyte)(noise[i][j][k] * 255);
+                data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 3] = (GLubyte)255;
             }
         }
     }
 }
 // ¹¹½¨ÌõÎÆµÄ3DÍ¼°¸
-void generate3Dpattern()
+void generateNoise()
 {
     int xStep = 0, yStep = 0, zStep = 0, sumSteps = 0;
-    for (int x = 0; x < texWidth; x++)
-    {
-        for (int y = 0; y < texHeight; y++)
-        {
-            for (int z = 0; z < texDepth; z++)
-            {
-                xStep = (x / 10) % 2;
-                yStep = (y / 10) % 2;
-                zStep = (z / 10) % 2;
-                sumSteps = xStep + yStep + zStep;
-                if ((sumSteps % 2) == 0)
-                {
-                    tex3Dpattern[x][y][z] = 0;
-                }
-                else
-                {
-                    tex3Dpattern[x][y][z] = 1;
-                }
+    for (int x = 0; x < noiseWidth; x++) {
+        for (int y = 0; y < noiseHeight; y++) {
+            for (int z = 0; z < noiseDepth; z++) {
+                noise[x][y][z] = (double)rand() / (RAND_MAX + 1.0);
             }
         }
     }
@@ -124,15 +96,15 @@ void generate3Dpattern()
 // ½«Ë³Ğò×Ö½ÚÊı¾İÊı×é¼ÓÔØ½øÎÆÀí¶ÔÏó, Æä·½Ê½ÀàËÆÓÚÇ°Ãæ5.12
 int load3DTexture() {
     GLuint textureID;
-    GLubyte* data = new GLubyte[texWidth * texHeight * texDepth * 4];
+    GLubyte* data = new GLubyte[noiseWidth * noiseHeight * noiseDepth * 4];
 
     fillDataArray(data);//Í¼ÏñÊı¾İ±»¸ñÊ½»¯Îª¶ÔÓ¦ÓÚRGBAÑÕÉ«·ÖÁ¿µÄ×Ö½ÚĞòÁĞ
 
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_3D, textureID);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexStorage3D(GL_TEXTURE_3D, 1, GL_RGBA8, texWidth, texHeight, texDepth);
-    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, texWidth, texHeight, texDepth, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV, data);
+    glTexStorage3D(GL_TEXTURE_3D, 1, GL_RGBA8, noiseWidth, noiseHeight, noiseDepth);
+    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, noiseWidth, noiseHeight, noiseDepth, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV, data);
     return textureID;
 }
 
@@ -144,7 +116,7 @@ void init(GLFWwindow* window) {
     cubeLocX = 0.0f; cubeLocY = -2.0f; cubeLocZ = 0.0f; // ÑØYÖáÏÂÒÆÒÔÕ¹Ê¾Í¸ÊÓ
     setupVertices();
 
-    generate3Dpattern();                   // 3DÍ¼°¸ºÍÎÆÀíÖ»¼ÓÔØÒ»´Î£¬ËùÒÔÔÚinit()Àï×÷
+    generateNoise();                   // 3DÍ¼°¸ºÍÎÆÀíÖ»¼ÓÔØÒ»´Î£¬ËùÒÔÔÚinit()Àï×÷
     stripeTexture = load3DTexture();       // Îª3DÎÆÀí±£´æÕûĞÍÍ¼°¸ID
 }
 
