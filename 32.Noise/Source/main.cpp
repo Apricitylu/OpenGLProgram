@@ -92,6 +92,18 @@ double smoothNoise(double x1, double y1, double z1)
     return value;
 }
 
+double turbulence(double x, double y, double z, double maxZoom) 
+{
+    double sum = 0.0, zoom = maxZoom;
+    while (zoom >= 1.0) {                  // 最后一遍是当zoom = 1时
+       // 计算平滑后的噪声图的加权和
+        sum = sum + smoothNoise(x / zoom, y / zoom, z / zoom) * zoom;
+        zoom = zoom / 2.0;                  // 对每个2的幂的缩放因子
+    }
+    sum = 128.0 * sum / maxZoom;           // 对不大于64的maxZoom值，保证RGB < 256
+    return sum;
+}
+
 // 按照由generate3Dpattern()构建的图案，用蓝色、黄色的RGB值来填充字节数组
 void fillDataArray(GLubyte data[])
 {
@@ -114,9 +126,16 @@ void fillDataArray(GLubyte data[])
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 3] = (GLubyte)255;
                 */
 
+                /*
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 0] = (GLubyte)(smoothNoise(i / zoom, j / zoom, k / zoom) * 255);
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 1] = (GLubyte)(smoothNoise(i / zoom, j / zoom, k / zoom) * 255);
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 2] = (GLubyte)(smoothNoise(i / zoom, j / zoom, k / zoom) * 255);
+                data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 3] = (GLubyte)255;
+                */
+
+                data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 0] = (GLubyte)turbulence(i, j, k, zoom);
+                data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 1] = (GLubyte)turbulence(i, j, k, zoom);
+                data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 2] = (GLubyte)turbulence(i, j, k, zoom);
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 3] = (GLubyte)255;
             }
         }
