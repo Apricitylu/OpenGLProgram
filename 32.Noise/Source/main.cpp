@@ -68,13 +68,21 @@ void setupVertices(void) {    // 36¸ö¶¥µã£¬12¸öÈı½ÇĞÎ£¬×é³ÉÁË·ÅÖÃÔÚÔ­µã´¦µÄ2¡Á2¡
 // °´ÕÕÓÉgenerate3Dpattern()¹¹½¨µÄÍ¼°¸£¬ÓÃÀ¶É«¡¢»ÆÉ«µÄRGBÖµÀ´Ìî³ä×Ö½ÚÊı×é
 void fillDataArray(GLubyte data[])
 {
+    int zoom = 32;      // Ëõ·ÅÒò×Ó
     int index = 0;
     for (int i = 0; i < noiseWidth; i++) {
         for (int j = 0; j < noiseHeight; j++) {
             for (int k = 0; k < noiseDepth; k++) {
+                /*
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 0] = (GLubyte)(noise[i][j][k] * 255);
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 1] = (GLubyte)(noise[i][j][k] * 255);
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 2] = (GLubyte)(noise[i][j][k] * 255);
+                data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 3] = (GLubyte)255;
+                */
+
+                data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 0] = (GLubyte)(noise[i / zoom][j / zoom][k / zoom] * 255);
+                data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 1] = (GLubyte)(noise[i / zoom][j / zoom][k / zoom] * 255);
+                data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 2] = (GLubyte)(noise[i / zoom][j / zoom][k / zoom] * 255);
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 3] = (GLubyte)255;
             }
         }
