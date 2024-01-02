@@ -66,6 +66,9 @@ void setupVertices(void) {    // 36¸ö¶¥µã£¬12¸öÈı½ÇĞÎ£¬×é³ÉÁË·ÅÖÃÔÚÔ­µã´¦µÄ2¡Á2¡
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions), vertexPositions, GL_STATIC_DRAW);
 }
 
+/*
+* Í¨¹ı¼ÆËãÏàÓ¦Ô­Ê¼¡°¿é×´¡±ÔëÉùÍ¼ÖĞÎÆËØÖÜÎ§µÄ8¸ö»Ò¶ÈÖµµÄ¼ÓÈ¨Æ½¾ùÖµÀ´¼ÆËã¸ø¶¨ÔëÉùÍ¼µÄÆ½»¬°æ±¾ÖĞµÄÃ¿¸öÎÆËØµÄ»Ò¶ÈÖµ¡£
+*/
 double smoothNoise(double x1, double y1, double z1) 
 {
     // x1¡¢y1ºÍz1µÄĞ¡Êı²¿·Ö£¨¶ÔÓÚµ±Ç°ÎÆËØ£¬´Óµ±Ç°¿éµ½ÏÂÒ»¸ö¿éµÄ°Ù·Ö±È£©
@@ -113,6 +116,7 @@ void fillDataArray(GLubyte data[])
         for (int j = 0; j < noiseHeight; j++) {
             for (int k = 0; k < noiseDepth; k++) {
                 /*
+                * ¼òµ¥µÄÔëÒô
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 0] = (GLubyte)(noise[i][j][k] * 255);
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 1] = (GLubyte)(noise[i][j][k] * 255);
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 2] = (GLubyte)(noise[i][j][k] * 255);
@@ -120,6 +124,7 @@ void fillDataArray(GLubyte data[])
                 */
 
                 /*
+                * ÒıÈëËõ·ÅÒò×Ó£¬Ê¹µÃµ½µÄ3DÎÆÀí¸ü¶à»òÉÙµØ³ÊÏÖ¡°¿é×´¡±
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 0] = (GLubyte)(noise[i / zoom][j / zoom][k / zoom] * 255);
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 1] = (GLubyte)(noise[i / zoom][j / zoom][k / zoom] * 255);
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 2] = (GLubyte)(noise[i / zoom][j / zoom][k / zoom] * 255);
@@ -127,12 +132,14 @@ void fillDataArray(GLubyte data[])
                 */
 
                 /*
+                * Í¨¹ı´ÓÃ¿¸öÀëÉ¢»Ò¶ÈÑÕÉ«Öµ²åÖµµ½ÏÂÒ»¸ö»Ò¶ÈÑÕÉ«Öµ£¬Æ½»¬ÌØ¶¨µÄÔëÉùÍ¼ÄÚµÄ¡°¿éĞ§Ó¦¡±
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 0] = (GLubyte)(smoothNoise(i / zoom, j / zoom, k / zoom) * 255);
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 1] = (GLubyte)(smoothNoise(i / zoom, j / zoom, k / zoom) * 255);
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 2] = (GLubyte)(smoothNoise(i / zoom, j / zoom, k / zoom) * 255);
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 3] = (GLubyte)255;
                 */
 
+                /*×éºÏ¸÷ÖÖËõ·ÅÒò×ÓµÄÆ½»¬ÔëÉùÍ¼*/
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 0] = (GLubyte)turbulence(i, j, k, zoom);
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 1] = (GLubyte)turbulence(i, j, k, zoom);
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 2] = (GLubyte)turbulence(i, j, k, zoom);
