@@ -74,6 +74,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "31.Texture3D", "31.Texture3
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "32.Noise", "32.Noise\32.Noise.vcxproj", "{98C4EF57-B571-487C-955A-2F6AAC948EB0}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "33.Noise_Marble", "33.Noise_Marble\33.Noise_Marble.vcxproj", "{8CCD9B17-18E2-4A8B-8B9A-24E0AC6DCEF8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -354,6 +356,14 @@ Global
 		{98C4EF57-B571-487C-955A-2F6AAC948EB0}.Release|x64.Build.0 = Release|x64
 		{98C4EF57-B571-487C-955A-2F6AAC948EB0}.Release|x86.ActiveCfg = Release|Win32
 		{98C4EF57-B571-487C-955A-2F6AAC948EB0}.Release|x86.Build.0 = Release|Win32
+		{8CCD9B17-18E2-4A8B-8B9A-24E0AC6DCEF8}.Debug|x64.ActiveCfg = Debug|x64
+		{8CCD9B17-18E2-4A8B-8B9A-24E0AC6DCEF8}.Debug|x64.Build.0 = Debug|x64
+		{8CCD9B17-18E2-4A8B-8B9A-24E0AC6DCEF8}.Debug|x86.ActiveCfg = Debug|Win32
+		{8CCD9B17-18E2-4A8B-8B9A-24E0AC6DCEF8}.Debug|x86.Build.0 = Debug|Win32
+		{8CCD9B17-18E2-4A8B-8B9A-24E0AC6DCEF8}.Release|x64.ActiveCfg = Release|x64
+		{8CCD9B17-18E2-4A8B-8B9A-24E0AC6DCEF8}.Release|x64.Build.0 = Release|x64
+		{8CCD9B17-18E2-4A8B-8B9A-24E0AC6DCEF8}.Release|x86.ActiveCfg = Release|Win32
+		{8CCD9B17-18E2-4A8B-8B9A-24E0AC6DCEF8}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
