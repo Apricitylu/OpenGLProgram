@@ -1,12 +1,15 @@
-#version 430
+ï»¿#version 430
 in vec3 varyingNormal;
 in vec3 varyingLightDir;
 in vec3 varyingVertPos;
 in vec3 varyingHalfVector;
 out vec4 fragColor;
 
-// Óë¶¥µã×ÅÉ«Æ÷ÏàÍ¬µÄÍ³Ò»±äÁ¿
-// µ«²¢²»Ö±½ÓÔÚµ±Ç°Æ¬¶Î×ÅÉ«Æ÷Ê¹ÓÃ
+in vec3 originalPosition;         // æ¥å—åŸå§‹æ¨¡å‹åæ ‡ï¼Œç”¨ä½œ3Dçº¹ç†åæ ‡
+layout (binding=0) uniform sampler3D s;
+
+// ä¸é¡¶ç‚¹ç€è‰²å™¨ç›¸åŒçš„ç»Ÿä¸€å˜é‡
+// ä½†å¹¶ä¸ç›´æ¥åœ¨å½“å‰ç‰‡æ®µç€è‰²å™¨ä½¿ç”¨
 
 struct PositionalLight
 { 
@@ -33,22 +36,25 @@ uniform mat4 norm_matrix;
 
 void main(void)
 { 
-	// Õı¹æ»¯¹âÕÕÏòÁ¿¡¢·¨ÏòÁ¿¡¢ÊÓ¾õÏòÁ¿
+	// æ­£è§„åŒ–å…‰ç…§å‘é‡ã€æ³•å‘é‡ã€è§†è§‰å‘é‡
 	vec3 L = normalize(varyingLightDir); 
 	vec3 N = normalize(varyingNormal); 
 	vec3 V = normalize(-varyingVertPos); 
 	vec3 H = normalize(varyingHalfVector); 
 
-	// ¼ÆËã¹âÕÕÓëÆ½Ãæ·¨ÏòÁ¿¼äµÄ½Ç¶È
+	// è®¡ç®—å…‰ç…§ä¸å¹³é¢æ³•å‘é‡é—´çš„è§’åº¦
 	float cosTheta = dot(L,N);
-	// ¼ÆËã·¨ÏòÁ¿NÓë½ÇÆ½·ÖÏßÏòÁ¿HÖ®¼äµÄ½Ç¶È
+	// è®¡ç®—æ³•å‘é‡Nä¸è§’å¹³åˆ†çº¿å‘é‡Hä¹‹é—´çš„è§’åº¦
 	float cosPhi = dot(H,N); 
 
-	// ¼ÆËãADS·ÖÁ¿(°´ÏñËØ)£¬²¢ºÏ²¢ÒÔ¹¹½¨Êä³öÑÕÉ«
-	// ½ÇÆ½·ÖÏßÏòÁ¿HÒÑ¾­ÔÚ¶¥µã×ÅÉ«Æ÷ÖĞ¼ÆËã¹ı£¬²¢ÔÚ¹âÕ¤Æ÷ÖĞ½øĞĞ¹ı²åÖµ
+	// è®¡ç®—ADSåˆ†é‡(æŒ‰åƒç´ )ï¼Œå¹¶åˆå¹¶ä»¥æ„å»ºè¾“å‡ºé¢œè‰²
+	// è§’å¹³åˆ†çº¿å‘é‡Hå·²ç»åœ¨é¡¶ç‚¹ç€è‰²å™¨ä¸­è®¡ç®—è¿‡ï¼Œå¹¶åœ¨å…‰æ …å™¨ä¸­è¿›è¡Œè¿‡æ’å€¼
 	vec3 ambient = ((globalAmbient * material.ambient) + (light.ambient * material.ambient)).xyz; 
 	vec3 diffuse = light.diffuse.xyz * material.diffuse.xyz * max(cosTheta,0.0); 
-	vec3 specular = light.specular.xyz * material.specular.xyz * pow(max(cosPhi,0.0), material.shininess*3.0); // ×îºó³ËÒÔ3.0×÷Îª¸ÄÉÆ¾µÃæ¸ß¹âµÄÎ¢µ÷
+	vec3 specular = light.specular.xyz * material.specular.xyz * pow(max(cosPhi,0.0), material.shininess*3.0); // æœ€åä¹˜ä»¥3.0ä½œä¸ºæ”¹å–„é•œé¢é«˜å…‰çš„å¾®è°ƒ
 
-	fragColor = vec4((ambient + diffuse + specular), 1.0);
+	vec4 lightColor = vec4((ambient + diffuse + specular), 1.0);
+	vec4 texColor = texture(s, originalPosition/2.0 + 0.5); // é¡¶ç‚¹èŒƒå›´ä¸º[âˆ’1,+1]ï¼Œçº¹ç†åæ ‡èŒƒå›´ä¸º[0,1]
+
+	fragColor = 0.3 * texColor + lightColor * 0.7;
 }

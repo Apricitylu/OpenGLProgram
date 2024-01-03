@@ -61,6 +61,12 @@ float* matDif = Utils::goldDiffuse();
 float* matSpe = Utils::goldSpecular();
 float matShi = Utils::goldShininess();
 
+const int noiseWidth = 256;
+const int noiseHeight = 256;
+const int noiseDepth = 256;
+double noise[noiseWidth][noiseHeight][noiseDepth];
+int stripeTexture;
+
 Torus myTorus(0.5f, 0.2f, 64);
 
 void setupVertices(void) {
@@ -103,6 +109,100 @@ void setupVertices(void) {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, ind.size() * 4, &ind[0], GL_STATIC_DRAW);
 }
 
+/*
+* 通过计算相应原始“块状”噪声图中纹素周围的8个灰度值的加权平均值来计算给定噪声图的平滑版本中的每个纹素的灰度值。
+*/
+double smoothNoise(double x1, double y1, double z1)
+{
+    // x1、y1和z1的小数部分（对于当前纹素，从当前块到下一个块的百分比）
+    double fractX = x1 - (int)x1;
+    double fractY = y1 - (int)y1;
+    double fractZ = z1 - (int)z1;
+
+    // 在X、Y和Z方向上的相邻像素的索引
+    int x2 = ((int)x1 + noiseWidth + 1) % noiseWidth;
+    int y2 = ((int)y1 + noiseHeight + 1) % noiseHeight;
+    int z2 = ((int)z1 + noiseDepth + 1) % noiseDepth;
+
+    // 通过按照3个轴方向插值灰度，平滑噪声
+    double value = 0.0;
+    value += (1 - fractX) * (1 - fractY) * (1 - fractZ) * noise[(int)x1][(int)y1][(int)z1];
+    value += (1 - fractX) * fractY * (1 - fractZ) * noise[(int)x1][(int)y2][(int)z1];
+    value += fractX * (1 - fractY) * (1 - fractZ) * noise[(int)x2][(int)y1][(int)z1];
+    value += fractX * fractY * (1 - fractZ) * noise[(int)x2][(int)y2][(int)z1];
+
+    value += (1 - fractX) * (1 - fractY) * fractZ * noise[(int)x1][(int)y1][(int)z2];
+    value += (1 - fractX) * fractY * fractZ * noise[(int)x1][(int)y2][(int)z2];
+    value += fractX * (1 - fractY) * fractZ * noise[(int)x2][(int)y1][(int)z2];
+    value += fractX * fractY * fractZ * noise[(int)x2][(int)y2][(int)z2];
+    return value;
+}
+
+double turbulence(double x, double y, double z, double maxZoom)
+{
+    double sum = 0.0, zoom = maxZoom;
+    while (zoom >= 1.0) {                  // 最后一遍是当zoom = 1时
+       // 计算平滑后的噪声图的加权和
+        sum = sum + smoothNoise(x / zoom, y / zoom, z / zoom) * zoom;
+        zoom = zoom / 2.0;                  // 对每个2的幂的缩放因子
+    }
+    sum = 128.0 * sum / maxZoom;           // 对不大于64的maxZoom值，保证RGB < 256
+    return sum;
+}
+
+// 按照由generate3Dpattern()构建的图案，用蓝色、黄色的RGB值来填充字节数组
+void fillDataArray(GLubyte data[])
+{
+    double veinFrequency = 2.0;//调整条纹数量
+    double turbPower = 1.5;//调整条纹中的扰动量（将其设置为0，使条纹不受干扰）
+    double turbSize = 64.0;//调整生成湍流时使用的缩放系数
+    for (int i = 0; i < noiseWidth; i++) {
+        for (int j = 0; j < noiseHeight; j++) {
+            for (int k = 0; k < noiseDepth; k++) {
+                double xyzValue = (float)i / noiseWidth + (float)j / noiseHeight + (float)k / noiseDepth + turbPower * turbulence(i, j, k, turbSize) / 256.0;
+                double sineValue = abs(sin(xyzValue * 3.14159 * veinFrequency));
+
+                //可模拟
+                float redPortion = 255.0f * (float)sineValue;
+                float greenPortion = 255.0f * (float)min(sineValue * 1.5 - 0.25, 1.0);
+                float bluePortion = 255.0f * (float)sineValue;
+
+                data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 0] = (GLubyte)redPortion;
+                data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 1] = (GLubyte)greenPortion;
+                data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 2] = (GLubyte)bluePortion;
+                data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 3] = (GLubyte)255;
+            }
+        }
+    }
+}
+// 构建条纹的3D图案
+void generateNoise()
+{
+    int xStep = 0, yStep = 0, zStep = 0, sumSteps = 0;
+    for (int x = 0; x < noiseWidth; x++) {
+        for (int y = 0; y < noiseHeight; y++) {
+            for (int z = 0; z < noiseDepth; z++) {
+                noise[x][y][z] = (double)rand() / (RAND_MAX + 1.0);
+            }
+        }
+    }
+}
+
+// 将顺序字节数据数组加载进纹理对象, 其方式类似于前面5.12
+int load3DTexture() {
+    GLuint textureID;
+    GLubyte* data = new GLubyte[noiseWidth * noiseHeight * noiseDepth * 4];
+
+    fillDataArray(data);//图像数据被格式化为对应于RGBA颜色分量的字节序列
+
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_3D, textureID);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexStorage3D(GL_TEXTURE_3D, 1, GL_RGBA8, noiseWidth, noiseHeight, noiseDepth);
+    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, noiseWidth, noiseHeight, noiseDepth, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV, data);
+    return textureID;
+}
+
 void init(GLFWwindow* window) {
     const char* vp = "Source/vertShader.glsl";
     const char* fp = "Source/fragShader.glsl";
@@ -110,6 +210,9 @@ void init(GLFWwindow* window) {
     cameraX = 0.0f; cameraY = 0.0f; cameraZ = 2.0f;
     LocX = 0.0f; LocY = 0.0f; LocZ = 0.0f; // 沿Y轴下移以展示透视
     setupVertices();
+
+    generateNoise();                   // 3D图案和纹理只加载一次，所以在init()里作
+    stripeTexture = load3DTexture();       // 为3D纹理保存整型图案ID
 }
 
 void installLights(glm::mat4 vMatrix) {
@@ -191,6 +294,9 @@ void display(GLFWwindow* window, double currentTime) {
     glFrontFace(GL_CCW);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_3D, stripeTexture);//指定了纹理类型GL_TEXTURE_3D
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[3]);
     glDrawElements(GL_TRIANGLES, myTorus.getNumIndices(), GL_UNSIGNED_INT, 0);

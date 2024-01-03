@@ -6,6 +6,7 @@ out vec3 varyingLightDir;    // 指向光源的向量
 out vec3 varyingVertPos;     // 视觉空间中的顶点位置
 out vec3 varyingHalfVector;  // 角平分线向量 H 作为新增的输出
 
+out vec3 originalPosition;   // 原始模型顶点将被用于纹理坐标
 
 struct PositionalLight
 { 
@@ -37,6 +38,8 @@ void main(void)
     varyingLightDir = light.position - varyingVertPos; 
     varyingNormal = (norm_matrix * vec4(vertNormal,1.0)).xyz; 
     varyingHalfVector = (varyingLightDir + (-varyingVertPos)).xyz; 
+
+    originalPosition = vertPos;          // 将原始模型坐标传递，用作3D纹理坐标
 
     gl_Position = proj_matrix * mv_matrix * vec4(vertPos,1.0);
 }
