@@ -34,7 +34,7 @@ GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
 
 // 为display() 函数分配变量
-GLuint mvLoc, projLoc, nLoc;
+GLuint mvLoc, projLoc, nLoc, tLoc;
 
 int width, height;
 float aspect;
@@ -66,6 +66,8 @@ const int noiseHeight = 256;
 const int noiseDepth = 256;
 double noise[noiseWidth][noiseHeight][noiseDepth];
 int stripeTexture;
+
+glm::mat4 texRot;
 
 Torus myTorus(0.5f, 0.2f, 64);
 
@@ -153,19 +155,24 @@ double turbulence(double x, double y, double z, double maxZoom)
 // 按照由generate3Dpattern()构建的图案，用蓝色、黄色的RGB值来填充字节数组
 void fillDataArray(GLubyte data[])
 {
-    double veinFrequency = 2.0;//调整条纹数量
-    double turbPower = 1.5;//调整条纹中的扰动量（将其设置为0，使条纹不受干扰）
-    double turbSize = 64.0;//调整生成湍流时使用的缩放系数
+    double xyPeriod = 40.0;//年轮的数量
+    double turbPower = 0.15;//调整条纹中的扰动量（将其设置为0，使条纹不受干扰）
+    double turbSize = 32.0;//调整生成湍流时使用的缩放系数
     for (int i = 0; i < noiseWidth; i++) {
         for (int j = 0; j < noiseHeight; j++) {
             for (int k = 0; k < noiseDepth; k++) {
-                double xyzValue = (float)i / noiseWidth + (float)j / noiseHeight + (float)k / noiseDepth + turbPower * turbulence(i, j, k, turbSize) / 256.0;
-                double sineValue = abs(sin(xyzValue * 3.14159 * veinFrequency));
+                //使用三角函数指定与Z轴等距的X和Y值
+                double xValue = (i - (double)noiseWidth / 2.0) / (double)noiseWidth;
+                double yValue = (j - (double)noiseHeight / 2.0) / (double)noiseHeight;
+                //double distanceFromZ = sqrt(xValue * xValue + yValue * yValue);
+                double distanceFromZ = sqrt(xValue * xValue + yValue * yValue) + turbPower * turbulence(i, j, k, turbSize) / 256.0;
+                double sineValue = 128.0 * abs(sin(2.0 * xyPeriod * distanceFromZ * 3.14159));//正弦波循环重复此过程
 
-                //可模拟
-                float redPortion = 255.0f * (float)sineValue;
-                float greenPortion = 255.0f * (float)min(sineValue * 1.5 - 0.25, 1.0);
-                float bluePortion = 255.0f * (float)sineValue;
+                //根据此正弦波均匀地升高和降低红色和绿色成分，以产生不同的棕色调。
+                //变量sineValue保持精确的色调，可以通过稍微偏移一个分量或另一个分量来调整（在这种情况下，将红色增加80，将绿色增加30）。
+                float redPortion = (float)(80 + (int)sineValue);
+                float greenPortion = (float)(30 + (int)sineValue);
+                float bluePortion = 0.0f;
 
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 0] = (GLubyte)redPortion;
                 data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 1] = (GLubyte)greenPortion;
@@ -213,6 +220,9 @@ void init(GLFWwindow* window) {
 
     generateNoise();                   // 3D图案和纹理只加载一次，所以在init()里作
     stripeTexture = load3DTexture();       // 为3D纹理保存整型图案ID
+
+    // 旋转应用于纹理坐标——增加额外的木纹变化
+    texRot = glm::rotate(glm::mat4(1.0f), Utils::toRadians(20.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
 void installLights(glm::mat4 vMatrix) {
@@ -254,6 +264,9 @@ void display(GLFWwindow* window, double currentTime) {
     mvLoc = glGetUniformLocation(renderingProgram, "mv_matrix");
     projLoc = glGetUniformLocation(renderingProgram, "proj_matrix");
     nLoc = glGetUniformLocation(renderingProgram, "norm_matrix");
+
+    tLoc = glGetUniformLocation(renderingProgram, "texRot");
+    glUniformMatrix4fv(tLoc, 1, false, glm::value_ptr(texRot));
 
     // 构建透视矩阵
     glfwGetFramebufferSize(window, &width, &height);

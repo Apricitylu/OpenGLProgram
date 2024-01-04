@@ -56,5 +56,5 @@ void main(void)
 	vec4 lightColor = vec4((ambient + diffuse + specular), 1.0);
 	vec4 texColor = texture(s, originalPosition/2.0 + 0.5); // 顶点范围为[−1,+1]，纹理坐标范围为[0,1]
 
-	fragColor = 0.3 * texColor + lightColor * 0.7;
+	fragColor = 0.5 * texColor + lightColor * 0.5;
 }
