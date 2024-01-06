@@ -78,6 +78,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "33.Noise_Marble", "33.Noise
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "34.Noise_Wood", "34.Noise_Wood\34.Noise_Wood.vcxproj", "{E94F8F23-5327-4239-983F-FEE6488B1877}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "35.Noise_Cloud", "35.Noise_Cloud\35.Noise_Cloud.vcxproj", "{CB73647E-4595-427D-A175-BC53666A2472}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -374,6 +376,14 @@ Global
 		{E94F8F23-5327-4239-983F-FEE6488B1877}.Release|x64.Build.0 = Release|x64
 		{E94F8F23-5327-4239-983F-FEE6488B1877}.Release|x86.ActiveCfg = Release|Win32
 		{E94F8F23-5327-4239-983F-FEE6488B1877}.Release|x86.Build.0 = Release|Win32
+		{CB73647E-4595-427D-A175-BC53666A2472}.Debug|x64.ActiveCfg = Debug|x64
+		{CB73647E-4595-427D-A175-BC53666A2472}.Debug|x64.Build.0 = Debug|x64
+		{CB73647E-4595-427D-A175-BC53666A2472}.Debug|x86.ActiveCfg = Debug|Win32
+		{CB73647E-4595-427D-A175-BC53666A2472}.Debug|x86.Build.0 = Debug|Win32
+		{CB73647E-4595-427D-A175-BC53666A2472}.Release|x64.ActiveCfg = Release|x64
+		{CB73647E-4595-427D-A175-BC53666A2472}.Release|x64.Build.0 = Release|x64
+		{CB73647E-4595-427D-A175-BC53666A2472}.Release|x86.ActiveCfg = Release|Win32
+		{CB73647E-4595-427D-A175-BC53666A2472}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
