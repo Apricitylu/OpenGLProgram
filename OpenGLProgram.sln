@@ -80,6 +80,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "34.Noise_Wood", "34.Noise_W
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "35.Noise_Cloud", "35.Noise_Cloud\35.Noise_Cloud.vcxproj", "{CB73647E-4595-427D-A175-BC53666A2472}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "36.Noise_Discard", "36.Noise_Discard\36.Noise_Discard.vcxproj", "{1C8150D5-2741-460B-BD21-2167EA4F0EF8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -384,6 +386,14 @@ Global
 		{CB73647E-4595-427D-A175-BC53666A2472}.Release|x64.Build.0 = Release|x64
 		{CB73647E-4595-427D-A175-BC53666A2472}.Release|x86.ActiveCfg = Release|Win32
 		{CB73647E-4595-427D-A175-BC53666A2472}.Release|x86.Build.0 = Release|Win32
+		{1C8150D5-2741-460B-BD21-2167EA4F0EF8}.Debug|x64.ActiveCfg = Debug|x64
+		{1C8150D5-2741-460B-BD21-2167EA4F0EF8}.Debug|x64.Build.0 = Debug|x64
+		{1C8150D5-2741-460B-BD21-2167EA4F0EF8}.Debug|x86.ActiveCfg = Debug|Win32
+		{1C8150D5-2741-460B-BD21-2167EA4F0EF8}.Debug|x86.Build.0 = Debug|Win32
+		{1C8150D5-2741-460B-BD21-2167EA4F0EF8}.Release|x64.ActiveCfg = Release|x64
+		{1C8150D5-2741-460B-BD21-2167EA4F0EF8}.Release|x64.Build.0 = Release|x64
+		{1C8150D5-2741-460B-BD21-2167EA4F0EF8}.Release|x86.ActiveCfg = Release|Win32
+		{1C8150D5-2741-460B-BD21-2167EA4F0EF8}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
