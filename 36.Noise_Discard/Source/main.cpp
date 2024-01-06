@@ -65,9 +65,11 @@ const int noiseWidth = 256;
 const int noiseHeight = 256;
 const int noiseDepth = 256;
 double noise[noiseWidth][noiseHeight][noiseDepth];
+double noise_discard[noiseWidth][noiseHeight][noiseDepth];
 int stripeTexture;
+int discardTexture;
 
-glm::mat4 texRot;
+float threshold = 0.0f;            // 用于保留、丢弃片段的逐渐增长的阈值
 
 Torus myTorus(0.5f, 0.2f, 64);
 
@@ -210,6 +212,50 @@ int load3DTexture() {
     return textureID;
 }
 
+// 按照由generate3Dpattern()构建的图案，用蓝色、黄色的RGB值来填充字节数组
+void fillDataArray_Discard(GLubyte data[])
+{
+    double zoom = 32.0;      // 缩放因子
+    int index = 0;
+    for (int i = 0; i < noiseWidth; i++) {
+        for (int j = 0; j < noiseHeight; j++) {
+            for (int k = 0; k < noiseDepth; k++) {
+                data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 0] = (GLubyte)(noise_discard[i][j][k] * 255);
+                data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 1] = (GLubyte)(noise_discard[i][j][k] * 255);
+                data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 2] = (GLubyte)(noise_discard[i][j][k] * 255);
+                data[i * (noiseWidth * noiseHeight * 4) + j * (noiseHeight * 4) + k * 4 + 3] = (GLubyte)255;
+            }
+        }
+    }
+}
+// 构建条纹的3D图案
+void generateNoise_Discard()
+{
+    int xStep = 0, yStep = 0, zStep = 0, sumSteps = 0;
+    for (int x = 0; x < noiseWidth; x++) {
+        for (int y = 0; y < noiseHeight; y++) {
+            for (int z = 0; z < noiseDepth; z++) {
+                noise_discard[x][y][z] = (double)rand() / (RAND_MAX + 1.0);
+            }
+        }
+    }
+}
+
+// 将顺序字节数据数组加载进纹理对象, 其方式类似于前面5.12
+int load3DTexture_Discard() {
+    GLuint textureID;
+    GLubyte* data = new GLubyte[noiseWidth * noiseHeight * noiseDepth * 4];
+
+    fillDataArray_Discard(data);//图像数据被格式化为对应于RGBA颜色分量的字节序列
+
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_3D, textureID);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexStorage3D(GL_TEXTURE_3D, 1, GL_RGBA8, noiseWidth, noiseHeight, noiseDepth);
+    glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, noiseWidth, noiseHeight, noiseDepth, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV, data);
+    return textureID;
+}
+
 void init(GLFWwindow* window) {
     const char* vp = "Source/vertShader.glsl";
     const char* fp = "Source/fragShader.glsl";
@@ -221,8 +267,8 @@ void init(GLFWwindow* window) {
     generateNoise();                   // 3D图案和纹理只加载一次，所以在init()里作
     stripeTexture = load3DTexture();       // 为3D纹理保存整型图案ID
 
-    // 旋转应用于纹理坐标——增加额外的木纹变化
-    texRot = glm::rotate(glm::mat4(1.0f), Utils::toRadians(20.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    generateNoise_Discard();
+    discardTexture = load3DTexture_Discard();
 }
 
 void installLights(glm::mat4 vMatrix) {
@@ -265,9 +311,6 @@ void display(GLFWwindow* window, double currentTime) {
     projLoc = glGetUniformLocation(renderingProgram, "proj_matrix");
     nLoc = glGetUniformLocation(renderingProgram, "norm_matrix");
 
-    tLoc = glGetUniformLocation(renderingProgram, "texRot");
-    glUniformMatrix4fv(tLoc, 1, false, glm::value_ptr(texRot));
-
     // 构建透视矩阵
     glfwGetFramebufferSize(window, &width, &height);
     aspect = (float)width / (float)height;
@@ -293,6 +336,10 @@ void display(GLFWwindow* window, double currentTime) {
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
     glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
 
+    tLoc = glGetUniformLocation(renderingProgram, "t");
+    threshold += .002f;
+    glUniform1f(tLoc, threshold);
+
     // 在顶点着色器中，将顶点缓冲区(VBO #0)绑定到顶点属性#0
     glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -310,6 +357,9 @@ void display(GLFWwindow* window, double currentTime) {
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_3D, stripeTexture);//指定了纹理类型GL_TEXTURE_3D
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_3D, discardTexture);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[3]);
     glDrawElements(GL_TRIANGLES, myTorus.getNumIndices(), GL_UNSIGNED_INT, 0);

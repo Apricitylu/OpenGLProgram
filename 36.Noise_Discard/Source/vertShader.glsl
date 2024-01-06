@@ -30,7 +30,6 @@ uniform Material material;
 uniform mat4 mv_matrix;
 uniform mat4 proj_matrix;
 uniform mat4 norm_matrix;   // 用来变换法向量
-uniform mat4 texRot;
 
 void main(void)
 { 
@@ -40,8 +39,7 @@ void main(void)
     varyingNormal = (norm_matrix * vec4(vertNormal,1.0)).xyz; 
     varyingHalfVector = (varyingLightDir + (-varyingVertPos)).xyz; 
 
-    //originalPosition = vertPos;          // 将原始模型坐标传递，用作3D纹理坐标
-    originalPosition = vec3(texRot * vec4(vertPos,1.0)).xyz;
+    originalPosition = vertPos;          // 将原始模型坐标传递，用作3D纹理坐标
 
     gl_Position = proj_matrix * mv_matrix * vec4(vertPos,1.0);
 }
